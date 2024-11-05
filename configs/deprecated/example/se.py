@@ -262,6 +262,16 @@ for i in range(np):
         )
         system.cpu[i].branchPred.indirectBranchPred = indirectBPClass()
 
+    # width of 1
+    system.cpu[i].fetchWidth=1
+    system.cpu[i].decodeWidth=1
+    system.cpu[i].renameWidth=1
+    system.cpu[i].dispatchWidth=1
+    system.cpu[i].issueWidth=1
+    system.cpu[i].wbWidth=1
+    system.cpu[i].commitWidth=1
+    system.cpu[i].squashWidth=1
+
     system.cpu[i].createThreads()
 
 if args.ruby:
