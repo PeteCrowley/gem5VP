@@ -19,13 +19,13 @@ _start:
     ; Flush the cache line containing my_int
     clflush [my_int]              ; Flush the cache line containing my_int
 
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
     ; 185 no ops without a loop to make sure the pipeline is cleared
     nop
     nop
@@ -216,13 +216,13 @@ _start:
 
 
     ; Reload the value from memory into EBX
-    mov ebx, [my_int]          ; Reload the value from my_int into EBX
+    mov eax, [my_int]          ; Reload the value from my_int into EBX
 
     ; Do some addition with the value loaded from memory
-    add ebx, 10                ; Add 10 to EBX (value now 110)
-    add ebx, 20                ; Add 20 to EBX (value now 130)
-    add ebx, 30                ; Add 30 to EBX (value now 160)
-    add ebx, 40                ; Add 40 to EBX (value now 200)
+    add eax, 10                ; Add 10 to EAX (value now 110)
+    add eax, 20                ; Add 20 to EAX (value now 130)
+    add eax, 30                ; Add 30 to EAX (value now 160)
+    add eax, 40                ; Add 40 to EAX (value now 200)
 
     ; Exit the program (for Linux)
     mov eax, 1                 ; sys_exit

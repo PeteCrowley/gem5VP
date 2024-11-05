@@ -1,0 +1,29 @@
+
+# Robert Viramontes
+
+from __future__ import print_function
+from __future__ import absolute_import
+
+import m5
+from m5.defines import buildEnv
+from m5.objects import *
+
+from common import ObjectList
+
+# Add the very basic options that work also in the case of the no ISA
+# being used, and consequently no CPUs, but rather various types of
+# testers and traffic generators.
+def addLvpOptions(parser):
+    # LCT params
+    parser.add_argument("--lct-entries", default=512)
+    parser.add_argument("--lct-ctr-bits", default=2)
+    parser.add_argument("--lct-invalidate-zero", default=False)
+
+    # LVPT params
+    parser.add_argument("--lvpt-entries", default=1024)
+    parser.add_argument("--lvpt-hist-depth", default=1)
+
+    # CVU params
+    parser.add_argument("--cvu-entries", default=8)
+    parser.add_argument("--cvu-replacement", default=1,
+                        help = "1: FIFO, 2: LRU, 3: NLRU, 4: MRU, 5: NMRU")
