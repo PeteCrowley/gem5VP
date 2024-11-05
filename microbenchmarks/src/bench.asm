@@ -219,10 +219,10 @@ _start:
     mov eax, [my_int]          ; Reload the value from my_int into EBX
 
     ; Do some addition with the value loaded from memory
-    add eax, 10                ; Add 10 to EAX (value now 110)
-    add eax, 20                ; Add 20 to EAX (value now 130)
-    add eax, 30                ; Add 30 to EAX (value now 160)
-    add eax, 40                ; Add 40 to EAX (value now 200)
+    add ebx, eax
+    add ebx, eax
+    add ebx, eax
+    add ebx, eax                             
 
     ; Exit the program (for Linux)
     mov eax, 1                 ; sys_exit
