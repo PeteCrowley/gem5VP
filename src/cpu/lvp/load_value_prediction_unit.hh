@@ -11,8 +11,6 @@
 #include "base/types.hh"
 #include "base/statistics.hh"
 
-#include "cpu/o3/dyn_inst.hh"
-
 namespace gem5{
 
 struct LvptResult {
