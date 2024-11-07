@@ -56,6 +56,7 @@
 #include "cpu/o3/limits.hh"
 #include "cpu/o3/thread_state.hh"
 #include "cpu/timebuf.hh"
+#include "cpu/lvp/load_value_prediction_unit.hh"
 #include "debug/Activity.hh"
 #include "debug/Commit.hh"
 #include "debug/CommitRate.hh"
@@ -63,6 +64,7 @@
 #include "debug/ExecFaulting.hh"
 #include "debug/HtmCpu.hh"
 #include "debug/O3PipeView.hh"
+#include "debug/LVP.hh"
 #include "params/BaseO3CPU.hh"
 #include "sim/faults.hh"
 #include "sim/full_system.hh"
@@ -84,6 +86,7 @@ Commit::processTrapEvent(ThreadID tid)
 Commit::Commit(CPU *_cpu, const BaseO3CPUParams &params)
     : commitPolicy(params.smtCommitPolicy),
       cpu(_cpu),
+      loadValuePred(nullptr),       // add the LVP unit -Pete
       iewToCommitDelay(params.iewToCommitDelay),
       commitToIEWDelay(params.commitToIEWDelay),
       renameToROBDelay(params.renameToROBDelay),
@@ -112,6 +115,8 @@ Commit::Commit(CPU *_cpu, const BaseO3CPUParams &params)
             priority_list.push_back(tid);
         }
     }
+
+    loadValuePred = params.loadValuePred;   // add the LVP unit -Pete
 
     for (ThreadID tid = 0; tid < MaxThreads; tid++) {
         commitStatus[tid] = Idle;
@@ -967,10 +972,24 @@ Commit::commitInsts()
         } else {
             set(pc[tid], head_inst->pcState());
 
+
+            // If it was a load, we want to read the actual result of the 
+            // instruction so we can update the LVPU -Pete
+            RegVal reg_result;
+            if (head_inst->isLoad()) {
+                reg_result = head_inst->getInstResult().asRegVal();
+            }
             // Try to commit the head instruction.
             bool commit_success = commitHead(head_inst, num_committed);
 
             if (commit_success) {
+                // here we have to update the LVP if it was a load instruction -Pete 
+                if (head_inst->isLoad()) {
+                    loadValuePred->verifyPrediction(head_inst->threadNumber, pcState(tid).instAddr(), head_inst->pcState().instAddr(), reg_result, head_inst->getLVPValue(), head_inst->getLVPClassification());
+                }
+
+                // to implement: if it is a store, process the store -Pete
+
                 ++num_committed;
                 cpu->commitStats[tid]
                     ->committedInstType[head_inst->opClass()]++;

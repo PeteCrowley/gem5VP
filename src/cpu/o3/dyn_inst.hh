@@ -354,6 +354,28 @@ class DynInst : public ExecContext, public RefCounted
     ssize_t sqIdx = -1;
     typename LSQUnit::SQIterator sqIt;
 
+    // The LVP data -Pete
+    LVPType lvp_classification = LVP_STRONG_UNPREDICTABLE;
+    RegVal lvp_value = 0;
+
+    // setter for LVP info -Pete
+    void setLVPInfo(LVPType classification, RegVal value)
+    {
+        lvp_classification = classification;
+        lvp_value = value;
+    }
+
+    // getter for LVP classification -Pete
+    LVPType getLVPClassification()
+    {
+        return lvp_classification;
+    }
+
+    // getter for LVP value -Pete
+    RegVal getLVPValue()
+    {
+        return lvp_value;
+    }
 
     /////////////////////// TLB Miss //////////////////////
     /**
@@ -694,6 +716,14 @@ class DynInst : public ExecContext, public RefCounted
 
     /** Return the size of the instResult queue. */
     uint8_t resultSize() { return instResult.size(); }
+
+    InstResult
+    getInstResult(){
+        if (!instResult.empty()) {
+            return instResult.front();
+        }
+        return InstResult();
+    }
 
     /** Pops a result off the instResult queue.
      * If the result stack is empty, return the default value.

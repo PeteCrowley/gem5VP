@@ -61,6 +61,7 @@
 #include "debug/Fetch.hh"
 #include "debug/O3CPU.hh"
 #include "debug/O3PipeView.hh"
+#include "debug/LVP.hh"
 #include "mem/packet.hh"
 #include "params/BaseO3CPU.hh"
 #include "sim/byteswap.hh"
@@ -1262,7 +1263,11 @@ Fetch::fetch(bool &status_change)
                 instruction->fetchTick = curTick();
             }
 #endif
-
+            // This is where we predict the vaue of a load instruction -Pete
+            if (instruction->isLoad()){
+                std::pair<LVPType, RegVal> lvp_result = loadValuePred->predictLoad(instruction->threadNumber, this_pc.instAddr());
+                instruction->setLVPInfo(lvp_result.first, lvp_result.second);
+            }
             set(next_pc, this_pc);
 
             // If we're branching after this instruction, quit fetching

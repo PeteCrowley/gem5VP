@@ -226,6 +226,9 @@ class IEW
     /** Check misprediction  */
     void checkMisprediction(const DynInstPtr &inst);
 
+    /** Check value misprediction -Pete */
+    // void checkValueMisprediction(const DynInstPtr &inst);
+
     // hardware transactional memory
     // For debugging purposes, it is useful to keep track of the most recent
     // htmUid that has been committed (architecturally, not transactionally)
