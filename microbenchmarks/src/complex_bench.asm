@@ -7,6 +7,8 @@
 
 section .data
     my_int dd 100               ; Define a 32-bit integer with the initial value 42
+    my_array dd 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16     ; Define an array of 4 integers (32-bit each) with initial values 1, 2, 3, and 4
+    other_int dd 200            ; Define a 32-bit integer with the initial value 200
 
 section .text
     global _start
@@ -18,73 +20,73 @@ _start:
     mov ecx, 15
 
     ;noops x50 to give the 
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
 
 
 ; train the value predictor
 _loop:
     dec ecx
     ; some noop padding because of branch prediction
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
     ; load value in
     mov eax, [my_int]          ; Load the value from my_int into EAX
     ; Do some addition with the value loaded from memory
@@ -100,15 +102,15 @@ _loop:
     mov eax, 200                ; Load the new value to be stored in EAX
     mov [my_int], eax           ; Store the new value into memory (my_int)
 
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
 
 _cont:
     ; if ecx is greater than 1, jump back to _loop
@@ -119,51 +121,51 @@ _cont:
     cmp ecx, 0                  ; Compare ecx to 0
     jz _end_loop                    ; If ecx == 0, jump back to _loop
     
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
 
-    ; Flush the cache line containing my_int
-    clflush [my_int]              ; Flush the cache line containing my_int
+    ; Read in other_int to evict my_int from the cache
+    mov eax, [other_int]        ; Load the value from other_int into EAX
 
     ; 185 no ops without a loop to make sure the pipeline is cleared
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
 
     JMP _loop                       
 
