@@ -51,6 +51,7 @@
 #include "cpu/o3/dyn_inst.hh"
 #include "cpu/o3/iew.hh"
 #include "cpu/o3/limits.hh"
+#include "cpu/lvp/load_value_prediction_unit.hh"
 #include "debug/Drain.hh"
 #include "debug/Fetch.hh"
 #include "debug/HtmCpu.hh"
@@ -83,9 +84,12 @@ LSQ::LSQ(CPU *cpu_ptr, IEW *iew_ptr, const BaseO3CPUParams &params)
       maxSQEntries(maxLSQAllocation(lsqPolicy, SQEntries, params.numThreads,
                   params.smtLSQThreshold)),
       dcachePort(this, cpu_ptr),
-      numThreads(params.numThreads)
+      numThreads(params.numThreads),
+      loadValuePred(nullptr)
 {
     assert(numThreads > 0 && numThreads <= MaxThreads);
+
+    loadValuePred = params.loadValuePred;
 
     //**********************************************
     //************ Handle SMT Parameters ***********
@@ -838,6 +842,16 @@ LSQ::pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,
             inst->effAddr = request->getVaddr();
             inst->effSize = size;
             inst->effAddrValid(true);
+
+                // process the load request in the lvpu -Pete
+            if (inst->isLoad() && inst->getLVPClassification() == LVP_CONSTANT && loadValuePred->processLoadAddress(inst->threadNumber, inst->pcState().instAddr())){
+                    inst->isConstantLoad = true;
+            }
+    
+            // process the store request in the lvpu -Pete
+            if (inst->isStore()){
+                loadValuePred->processStoreAddress(inst->threadNumber, inst->effAddr);
+            }   
 
             if (cpu->checker) {
                 inst->reqToVerify = std::make_shared<Request>(*request->req());

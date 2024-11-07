@@ -56,6 +56,7 @@
 #include "cpu/inst_seq.hh"
 #include "cpu/o3/dyn_inst_ptr.hh"
 #include "cpu/utils.hh"
+#include "cpu/lvp/load_value_prediction_unit.hh"
 #include "enums/SMTQueuePolicy.hh"
 #include "mem/port.hh"
 #include "sim/sim_object.hh"
@@ -74,6 +75,9 @@ class LSQUnit;
 
 class LSQ
 {
+  private:
+    LoadValuePredictionUnit *loadValuePred;
+    
   public:
     class LSQRequest;
 

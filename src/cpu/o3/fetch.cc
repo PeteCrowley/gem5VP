@@ -1268,6 +1268,7 @@ Fetch::fetch(bool &status_change)
                 std::pair<LVPType, RegVal> lvp_result = loadValuePred->predictLoad(instruction->threadNumber, this_pc.instAddr());
                 instruction->setLVPInfo(lvp_result.first, lvp_result.second);
             }
+
             set(next_pc, this_pc);
 
             // If we're branching after this instruction, quit fetching

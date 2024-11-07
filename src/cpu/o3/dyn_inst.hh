@@ -357,6 +357,7 @@ class DynInst : public ExecContext, public RefCounted
     // The LVP data -Pete
     LVPType lvp_classification = LVP_STRONG_UNPREDICTABLE;
     RegVal lvp_value = 0;
+    bool isConstantLoad = false;
 
     // setter for LVP info -Pete
     void setLVPInfo(LVPType classification, RegVal value)

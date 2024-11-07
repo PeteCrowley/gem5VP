@@ -973,7 +973,7 @@ Commit::commitInsts()
             set(pc[tid], head_inst->pcState());
 
 
-            // If it was a load, we want to read the actual result of the 
+            // If it was a load, we want to read the actual result of the
             // instruction so we can update the LVPU -Pete
             RegVal reg_result;
             if (head_inst->isLoad()) {
@@ -983,9 +983,9 @@ Commit::commitInsts()
             bool commit_success = commitHead(head_inst, num_committed);
 
             if (commit_success) {
-                // here we have to update the LVP if it was a load instruction -Pete 
-                if (head_inst->isLoad()) {
-                    loadValuePred->verifyPrediction(head_inst->threadNumber, pcState(tid).instAddr(), head_inst->pcState().instAddr(), reg_result, head_inst->getLVPValue(), head_inst->getLVPClassification());
+                // here we have to update the LVP if it was a load instruction -Pete
+                if (head_inst->isLoad() && !head_inst->isConstantLoad) {
+                    loadValuePred->verifyPrediction(head_inst->threadNumber, head_inst->pcState().instAddr(), head_inst->effAddr, reg_result, head_inst->getLVPValue(), head_inst->getLVPClassification());
                 }
 
                 // to implement: if it is a store, process the store -Pete
