@@ -87,6 +87,7 @@ Commit::Commit(CPU *_cpu, const BaseO3CPUParams &params)
     : commitPolicy(params.smtCommitPolicy),
       cpu(_cpu),
       loadValuePred(nullptr),       // add the LVP unit -Pete
+      predictValues(params.predictValues),
       iewToCommitDelay(params.iewToCommitDelay),
       commitToIEWDelay(params.commitToIEWDelay),
       renameToROBDelay(params.renameToROBDelay),
@@ -975,20 +976,35 @@ Commit::commitInsts()
 
             // If it was a load, we want to read the actual result of the
             // instruction so we can update the LVPU -Pete
-            RegVal reg_result;
-            if (head_inst->isLoad()) {
-                reg_result = head_inst->getInstResult().asRegVal();
+            RegVal reg_result = 0;
+            if (predictValues){
+                if (head_inst->isLoad()) {
+                    // Get the disassembled instruction text
+                    // const std::string inst_name = head_inst->staticInst->disassemble(head_inst->pcState().instAddr());
+
+                    // Print the instruction name, sequence number, and result
+                    // DPRINTF(O3PipeView, "Committing load instruction %d: %s\n", head_inst->seqNum, inst_name);
+
+                    // Not 100% sure why I have to do this check but it eliminates a segfault that was occuring
+                    if (head_inst->getInstResult().isValid()) {
+                        reg_result = head_inst->getInstResult().asRegVal();
+                    }
+
+                    
+                }
             }
+            
             // Try to commit the head instruction.
             bool commit_success = commitHead(head_inst, num_committed);
 
             if (commit_success) {
                 // here we have to update the LVP if it was a load instruction -Pete
-                if (head_inst->isLoad() && !head_inst->isConstantLoad) {
-                    loadValuePred->verifyPrediction(head_inst->threadNumber, head_inst->pcState().instAddr(), head_inst->effAddr, reg_result, head_inst->getLVPValue(), head_inst->getLVPClassification());
+                if (predictValues){
+                    if (head_inst->isLoad() && !head_inst->isConstantLoad && reg_result) {
+                        loadValuePred->verifyPrediction(head_inst->threadNumber, head_inst->pcState().instAddr(), head_inst->effAddr, reg_result, head_inst->getLVPValue(), head_inst->getLVPClassification());
+                    }
                 }
 
-                // to implement: if it is a store, process the store -Pete
 
                 ++num_committed;
                 cpu->commitStats[tid]

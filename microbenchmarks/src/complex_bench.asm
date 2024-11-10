@@ -1,9 +1,10 @@
 ; This is a simple assembly microbenchmark to show the effects of value prediction
-; It stores a value in memory, then accesses it a few times to train the value predictor
-; Then it flushes the cache line and performs a bunch of no-ops to clear the pipeline
+; It stores a value (my_int) in memory, then accesses it a few times to train the value predictor
+; Then, it changes the value of my_int (causing a CVU miss) and retrains the value predictor
+; Then it reads a different block (other_int) to evict the block with my_int performs a bunch of pauses to clear the pipeline
 ; Then it reloads the value from memory and performs some arithmetic operations with it
 ; Without value prediction, the processor has to stall to wait for these values before arithmetic operations can be performed
-; With value prediction, the processor can predict the values and continue executing instructions without stalling
+; With value prediction, the constant verification unit recognizes my_int as a constant, so the processor doesn't even have to go to the cache
 
 section .data
     my_int dd 100               ; Define a 32-bit integer with the initial value 42
@@ -111,6 +112,7 @@ _loop:
     pause
     pause
     pause
+    
 
 _cont:
     ; if ecx is greater than 1, jump back to _loop
@@ -135,6 +137,27 @@ _cont:
     mov eax, [other_int]        ; Load the value from other_int into EAX
 
     ; 185 no ops without a loop to make sure the pipeline is cleared
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
+    pause
     pause
     pause
     pause

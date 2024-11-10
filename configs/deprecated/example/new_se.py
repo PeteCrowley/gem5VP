@@ -265,21 +265,23 @@ for i in range(np):
         system.cpu[i].branchPred.indirectBranchPred = indirectBPClass()
 
     if cpu[i].loadValuePred:
-        # lct
-        cpu[i].loadValuePred.load_classification_table.localPredictorSize = args.lct_entries
-        cpu[i].loadValuePred.load_classification_table.localCtrBits = args.lct_ctr_bits
-        if args.lct_invalidate_zero:
-            cpu[i].loadValuePred.load_classification_table.invalidateConstToZero = True
-        # lvpt
-        cpu[i].loadValuePred.load_value_prediction_table.entries = args.lvpt_entries
-        cpu[i].loadValuePred.load_value_prediction_table.historyDepth = args.lvpt_hist_depth
-        # cvu
-        cpu[i].loadValuePred.constant_verification_unit.entries = args.cvu_entries
-        cpu[i].loadValuePred.constant_verification_unit.replacementPolicy = args.cvu_replacement
+        if not (args.lvp == "True" or args.lvp == "true"):
+            cpu[i].predictValues = False
+        else:
+            cpu[i].predictValues = True
+            # lct
+            cpu[i].loadValuePred.load_classification_table.localPredictorSize = args.lct_entries
+            cpu[i].loadValuePred.load_classification_table.localCtrBits = args.lct_ctr_bits
+            if args.lct_invalidate_zero:
+                cpu[i].loadValuePred.load_classification_table.invalidateConstToZero = True
+            # lvpt
+            cpu[i].loadValuePred.load_value_prediction_table.entries = args.lvpt_entries
+            cpu[i].loadValuePred.load_value_prediction_table.historyDepth = args.lvpt_hist_depth
+            # cvu
+            cpu[i].loadValuePred.constant_verification_unit.entries = args.cvu_entries
+            cpu[i].loadValuePred.constant_verification_unit.replacementPolicy = args.cvu_replacement
 
-    print("Load Value Predictor Table Number of Entries:", cpu[i].loadValuePred.load_value_prediction_table.entries)
-
-    # width of 1
+    # # width of 1
     system.cpu[i].fetchWidth = 1
     system.cpu[i].decodeWidth = 1
     system.cpu[i].renameWidth = 1

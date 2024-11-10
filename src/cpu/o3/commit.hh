@@ -130,6 +130,7 @@ class Commit
 
     // LVP Unit -Pete
     LoadValuePredictionUnit *loadValuePred;
+    bool predictValues;
 
     /** Mark the thread as processing a trap. */
     void processTrapEvent(ThreadID tid);

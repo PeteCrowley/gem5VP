@@ -85,7 +85,8 @@ LSQ::LSQ(CPU *cpu_ptr, IEW *iew_ptr, const BaseO3CPUParams &params)
                   params.smtLSQThreshold)),
       dcachePort(this, cpu_ptr),
       numThreads(params.numThreads),
-      loadValuePred(nullptr)
+      loadValuePred(nullptr),
+      predictValues(params.predictValues)
 {
     assert(numThreads > 0 && numThreads <= MaxThreads);
 
@@ -843,15 +844,28 @@ LSQ::pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,
             inst->effSize = size;
             inst->effAddrValid(true);
 
+            if (predictValues){
                 // process the load request in the lvpu -Pete
-            if (inst->isLoad() && inst->getLVPClassification() == LVP_CONSTANT && loadValuePred->processLoadAddress(inst->threadNumber, inst->pcState().instAddr())){
-                    inst->isConstantLoad = true;
+                if (inst->isLoad() && inst->getLVPClassification() == LVP_CONSTANT && loadValuePred->processLoadAddress(inst->threadNumber, inst->pcState().instAddr())){
+                        inst->isConstantLoad = true;
+                        // Now set the correct register value and return
+                        inst->setRegOperand(inst->staticInst.get(), 0, inst->lvp_value);
+                        inst->setExecuted();
+                        // do the writeback stage just like in lsq_unit writeback -Pete
+                        iewStage->wakeCPU();
+                        // Need to insert instruction into queue to commit
+                        iewStage->instToCommit(inst);
+                        iewStage->activityThisCycle();
+                        // see if this load changed the PC
+                        iewStage->checkMisprediction(inst);
+                        return NoFault;
+                }
+        
+                // process the store request in the lvpu -Pete
+                if (inst->isStore()){
+                    loadValuePred->processStoreAddress(inst->threadNumber, inst->effAddr);
+                }   
             }
-    
-            // process the store request in the lvpu -Pete
-            if (inst->isStore()){
-                loadValuePred->processStoreAddress(inst->threadNumber, inst->effAddr);
-            }   
 
             if (cpu->checker) {
                 inst->reqToVerify = std::make_shared<Request>(*request->req());

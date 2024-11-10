@@ -27,3 +27,6 @@ def addLvpOptions(parser):
     parser.add_argument("--cvu-entries", default=8)
     parser.add_argument("--cvu-replacement", default=1,
                         help = "1: FIFO, 2: LRU, 3: NLRU, 4: MRU, 5: NMRU")
+    
+    # is there a LVP?
+    parser.add_argument("--lvp", default=False)

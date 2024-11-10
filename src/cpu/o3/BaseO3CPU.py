@@ -194,3 +194,4 @@ class BaseO3CPU(BaseCPU):
     needsTSO = Param.Bool(False, "Enable TSO Memory model")
 
     loadValuePred = Param.LoadValuePredictionUnit(LoadValuePredictionUnit(), "Value Predictor")
+    predictValues = Param.Bool(False, "Enable Load Value Predictor")

@@ -415,6 +415,7 @@ class Fetch
 
     /* VPredUnit */
     LoadValuePredictionUnit *loadValuePred;
+    bool predictValues;
 
     std::unique_ptr<PCStateBase> pc[MaxThreads];
 

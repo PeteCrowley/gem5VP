@@ -77,6 +77,7 @@ class LSQ
 {
   private:
     LoadValuePredictionUnit *loadValuePred;
+    bool predictValues;
     
   public:
     class LSQRequest;
