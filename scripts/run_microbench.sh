@@ -19,7 +19,7 @@ nasm -f elf32 -o microbenchmarks/object_files/${BENCHMARK_NAME}.o microbenchmark
 ld -m elf_i386 -o microbenchmarks/bin/${BENCHMARK_NAME} microbenchmarks/object_files/${BENCHMARK_NAME}.o
 
 # Run the microbenchmark in gem5
-build/X86/gem5.opt --debug-flags=O3PipeView,O3CPUAll,Cache,LVPAll --debug-file=trace.out --outdir=${OUTPUT_DIR} configs/deprecated/example/new_se.py --cpu-type=X86O3CPU --lvp=False --cmd=/home/rapiduser/gem5VP/microbenchmarks/bin/${BENCHMARK_NAME} --caches --l1d_size=64 --l1d_assoc=1 --l2_size=1MB --l2_assoc=1
+build/X86/gem5.opt --debug-flags=O3PipeView,O3CPUAll,Cache,LVPAll,DumpRegs --debug-file=trace.out --outdir=${OUTPUT_DIR} configs/deprecated/example/new_se.py --cpu-type=X86O3CPU --lvp=True --scalar=True --squash_width=32 --cmd=/home/rapiduser/gem5VP/microbenchmarks/bin/${BENCHMARK_NAME} --caches --l1d_size=64 --l1d_assoc=1 --l2_size=1MB --l2_assoc=1
 
 # Generate the pipeline view
 ./util/o3-pipeview.py -c 500 -o pipeview.out --color ${OUTPUT_DIR}/trace.out

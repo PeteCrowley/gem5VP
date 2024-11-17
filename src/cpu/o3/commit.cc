@@ -977,31 +977,35 @@ Commit::commitInsts()
             // If it was a load, we want to read the actual result of the
             // instruction so we can update the LVPU -Pete
             RegVal reg_result = 0;
+            bool validResult = false;
             if (predictValues){
                 if (head_inst->isLoad()) {
-                    // Get the disassembled instruction text
-                    // const std::string inst_name = head_inst->staticInst->disassemble(head_inst->pcState().instAddr());
-
-                    // Print the instruction name, sequence number, and result
-                    // DPRINTF(O3PipeView, "Committing load instruction %d: %s\n", head_inst->seqNum, inst_name);
-
                     // Not 100% sure why I have to do this check but it eliminates a segfault that was occuring
+                    if (head_inst->isValSpeculation){
+                        head_inst->popResult();
+                    }
+                    
                     if (head_inst->getInstResult().isValid()) {
                         reg_result = head_inst->getInstResult().asRegVal();
+                        validResult = true;
                     }
-
-                    
                 }
             }
             
             // Try to commit the head instruction.
             bool commit_success = commitHead(head_inst, num_committed);
-
             if (commit_success) {
                 // here we have to update the LVP if it was a load instruction -Pete
                 if (predictValues){
-                    if (head_inst->isLoad() && !head_inst->isConstantLoad && reg_result) {
+                    if (head_inst->isLoad() && !head_inst->isConstantLoad && validResult) {
                         loadValuePred->verifyPrediction(head_inst->threadNumber, head_inst->pcState().instAddr(), head_inst->effAddr, reg_result, head_inst->getLVPValue(), head_inst->getLVPClassification());
+                        // debug statement to see if we are speculating
+                        DPRINTF(Commit, "Inst [%llu] Speculating: %d, LVP Classification: %d\n", head_inst->seqNum, head_inst->isValSpeculation, head_inst->getLVPClassification());
+                        // if we mispredicted, we have to do some squashing:
+                        if (head_inst->isValSpeculation && head_inst->getLVPValue() != reg_result) {
+                            DPRINTF(Commit, "Mispredicted load value for instr [%llu], squashing\n", head_inst->seqNum);
+                            squashAfter(head_inst->threadNumber, head_inst);
+                        }
                     }
                 }
 

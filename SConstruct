@@ -534,6 +534,8 @@ def config_embedded_python(env):
 for variant_path in variant_paths:
     # Make a copy of the build-root environment to use for this config.
     env = main.Clone()
+    env.Tool(SCons.Tool.FindTool(['compilation_db'], main)) # added this line
+    env.CompilationDatabase(os.path.join(variant_path, 'compile_commands.json')) # added this line
     env['BUILDDIR'] = variant_path
 
     gem5_build = os.path.join(variant_path, 'gem5.build')

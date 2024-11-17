@@ -123,6 +123,9 @@ class Rename
      */
     ProbePointArg<SeqNumRegPair> *ppSquashInRename;
 
+    // Need to know whether to predict values -Pete
+    bool predictValues;
+
   public:
     /** Rename constructor. */
     Rename(CPU *_cpu, const BaseO3CPUParams &params);

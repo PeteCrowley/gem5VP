@@ -65,7 +65,8 @@ Rename::Rename(CPU *_cpu, const BaseO3CPUParams &params)
       commitToRenameDelay(params.commitToRenameDelay),
       renameWidth(params.renameWidth),
       numThreads(params.numThreads),
-      stats(_cpu)
+      stats(_cpu),
+      predictValues(params.predictValues)
 {
     if (renameWidth > MaxWidth)
         fatal("renameWidth (%d) is larger than compiled limit (%d),\n"
@@ -1132,6 +1133,23 @@ Rename::renameDestRegs(const DynInstPtr &inst, ThreadID tid)
                             rename_result.second);
 
         ++stats.renamedOperands;
+    }
+    // Now we are going to predict the values for registers if they are a predictable load
+    if (predictValues && inst->isLoad() && inst->lvp_classification == LVP_PREDICTABLE){
+        // we want to predict the value and set the destination reg as ready for
+        // dependent instructions here if it is predictable -Pete
+        DPRINTF(Rename, "[tid:%i] Issue: Predictable Load encountered, predicting value.\n", tid);
+        // specutively predict the value and set the register to the correct value
+        // This should get corrected later if its wrong and if so we can flush and re-execute the instructions
+        inst->setRegOperand(inst->staticInst.get(), 0, inst->lvp_value);
+
+        // Mark the destination register as ready for dependent instructions
+        DPRINTF(IEW,"Speculatively setting Destination Register %i (%s), [%d]\n",
+                        inst->renamedDestIdx(0)->index(),
+                        inst->renamedDestIdx(0)->className(),
+                        inst->seqNum);
+        scoreboard->setReg(inst->renamedDestIdx(0));
+        inst->isValSpeculation = true;
     }
 }
 

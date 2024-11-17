@@ -30,3 +30,9 @@ def addLvpOptions(parser):
     
     # is there a LVP?
     parser.add_argument("--lvp", default=False)
+
+    # want to do scalar instead?
+    parser.add_argument("--scalar", default=False)
+
+    # how many instructions should we be able to squash post mispredict?
+    parser.add_argument("--squash_width", default=8)

@@ -282,14 +282,17 @@ for i in range(np):
             cpu[i].loadValuePred.constant_verification_unit.replacementPolicy = args.cvu_replacement
 
     # # width of 1
-    system.cpu[i].fetchWidth = 1
-    system.cpu[i].decodeWidth = 1
-    system.cpu[i].renameWidth = 1
-    system.cpu[i].dispatchWidth = 1
-    system.cpu[i].issueWidth = 1
-    system.cpu[i].wbWidth = 1
-    system.cpu[i].commitWidth = 1
-    system.cpu[i].squashWidth = 1
+    if args.scalar:
+        system.cpu[i].fetchWidth = 1
+        system.cpu[i].decodeWidth = 1
+        system.cpu[i].renameWidth = 1
+        system.cpu[i].dispatchWidth = 1
+        system.cpu[i].issueWidth = 1
+        system.cpu[i].wbWidth = 1
+        system.cpu[i].commitWidth = 1
+        system.cpu[i].squashWidth = 1
+
+    system.cpu[i].squashWidth = args.squash_width
 
     system.cpu[i].createThreads()
 

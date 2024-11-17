@@ -56,7 +56,6 @@
 #include "debug/Drain.hh"
 #include "debug/IEW.hh"
 #include "debug/O3PipeView.hh"
-#include "debug/LVP.hh"
 #include "params/BaseO3CPU.hh"
 
 namespace gem5
@@ -1257,7 +1256,6 @@ IEW::executeInsts()
             // that have not been executed.
             bool loadNotExecuted = !inst->isExecuted() && inst->isLoad();
 
-            // Also check for value mispredictions here -Pete
             if (inst->mispredicted() && !loadNotExecuted) {
                 fetchRedirect[tid] = true;
 
@@ -1583,9 +1581,6 @@ IEW::checkMisprediction(const DynInstPtr& inst)
         }
     }
 }
-
-
-// We need a check value misprediction function here too -Pete
 
 } // namespace o3
 } // namespace gem5

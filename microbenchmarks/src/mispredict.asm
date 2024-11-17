@@ -9,7 +9,7 @@ section .data
     my_int dd 100               ; Define a 32-bit integer with the initial value 42
     ; load in an array so my_int and other_int aren't in the same block
     my_array dd 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16     ; Define an array of 4 integers (32-bit each) with initial values 1, 2, 3, and 4
-    other_int dd 200            ; Define a 32-bit integer with the initial value 200
+    other_int dd 300            ; Define a 32-bit integer with the initial value 200
 
 
 section .text
@@ -19,7 +19,7 @@ _start:
     ; Store a value in my_int
     mov eax, 100               ; Load the value to be stored in EAX
     mov [my_int], eax          ; Store the value into memory (my_int) so it goes to the l1 cache
-    mov ecx,5
+    mov ecx,4
 
     ;pauses x50 to give the 
     pause
@@ -101,6 +101,10 @@ _loop:
     pause
     pause
     pause
+
+    ; store in new value
+    mov edx, 200                ; Load the new value to be stored in EAX
+    mov [my_int], edx           ; Store the new value into memory (my_int)
 
     ; Read in other_int to evict my_int from the cache
     mov eax, [other_int]        ; Load the value from other_int into EAX

@@ -845,8 +845,10 @@ LSQ::pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,
             inst->effAddrValid(true);
 
             if (predictValues){
-                // process the load request in the lvpu -Pete
+                // process the load request in the lvpu if it is a constant prediction -Pete
+
                 if (inst->isLoad() && inst->getLVPClassification() == LVP_CONSTANT && loadValuePred->processLoadAddress(inst->threadNumber, inst->pcState().instAddr())){
+                        // if it is truly a constant load, we can predict the value without even going to memory
                         inst->isConstantLoad = true;
                         // Now set the correct register value and return
                         inst->setRegOperand(inst->staticInst.get(), 0, inst->lvp_value);
@@ -861,7 +863,7 @@ LSQ::pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,
                         return NoFault;
                 }
         
-                // process the store request in the lvpu -Pete
+                // process all store requests in the lvpu -Pete
                 if (inst->isStore()){
                     loadValuePred->processStoreAddress(inst->threadNumber, inst->effAddr);
                 }   
