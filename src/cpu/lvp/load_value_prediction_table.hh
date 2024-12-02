@@ -11,6 +11,8 @@
 #include "base/types.hh"
 #include "base/logging.hh"
 
+#include <boost/circular_buffer.hpp>
+
 /** Creating a default Load Value Prediction Table entry
  *  which will have below attributes
  *  tag   : Specifies the Opcode of the Load instruction
@@ -22,18 +24,22 @@ namespace gem5
 {
 class LoadValuePredictionTable : public SimObject
 {
-  private:
+  protected:
     struct LVPTEntry
     {
         LVPTEntry()
-            : tag(0), target(0), valid(false)
+            : tag(0), history(), valid(false)
+        {}
+
+        LVPTEntry(size_t depth)
+            : tag(0), history(depth), valid(false)
         {}
 
         /** The entry's tag. */
         Addr tag;
 
-        /** The entry's target. */ 
-        RegVal target;
+        /** The entry's history. */ 
+        boost::circular_buffer<RegVal> history;
 
         /** The entry's thread id. */
         ThreadID tid;
@@ -59,6 +65,10 @@ class LoadValuePredictionTable : public SimObject
      *  @return Returns the predicated load value.
      */
     RegVal lookup(ThreadID tid, Addr instPC, bool *lvptResultValid);
+
+    RegVal strideLookup(ThreadID tid, Addr instPC, bool *lvptResultValid);
+
+    RegVal getStride(ThreadID tid, Addr instPC);
 
     /** Checks if the load entry is in the LVPT.
      *  @param inst_PC The address of the branch to look up.
@@ -88,7 +98,7 @@ class LoadValuePredictionTable : public SimObject
      */
     inline Addr getTag(Addr instPC);
 
-  private:
+  protected:
 
     /** The actual LVPT declaration */
     std::vector<LVPTEntry> LVPT;

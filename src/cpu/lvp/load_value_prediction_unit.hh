@@ -26,6 +26,7 @@ class LoadValuePredictionUnit : public SimObject
     LoadClassificationTable* loadClassificationTable;
     LoadValuePredictionTable* loadValuePredictionTable;
     ConstantVerificationUnit* constantVerificationUnit;
+    bool isStride;
     
     statistics::Scalar numPredictableLoads;
     statistics::Scalar numPredictableCorrect;

@@ -19,7 +19,7 @@ _start:
     ; Store a value in my_int
     mov eax, 100               ; Load the value to be stored in EAX
     mov [my_int], eax          ; Store the value into memory (my_int) so it goes to the l1 cache
-    mov ecx,6
+    mov ecx,5
 
     ;pauses x50 to give the 
     pause
@@ -84,6 +84,9 @@ _loop:
     ; Do some addition with the value loaded from memory
     add ebx, eax
     imul ebx, eax
+
+    ; increment the value in my_int
+    add dword [my_int], 1       ; Increment the value in my_int by 1
 
     ; if ecx is greater than 1, jump back to _loop
     cmp ecx, 1                  ; Compare ecx to 1

@@ -25,7 +25,7 @@ LoadValuePredictionTable::LoadValuePredictionTable(const LoadValuePredictionTabl
 
     DPRINTF(LVPT, "LVPT: Doing an initial reset \n");
     for (unsigned i = 0; i < numEntries; ++i) {
-        LVPT[i].valid = false;
+        LVPT[i] = LVPTEntry(historyDepth);
     }
 
     idxMask = numEntries - 1;
@@ -94,13 +94,56 @@ LoadValuePredictionTable::lookup(ThreadID tid, Addr instPC, bool *lvptResultVali
     assert(LVPT_idx < numEntries);
 
     if (valid(instPC, tid)) {
-        DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %d \n", 
-            tid, instPC, LVPT[LVPT_idx].target);
+        DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %#x \n", 
+            tid, instPC, LVPT[LVPT_idx].history.back());
         *lvptResultValid = true;
-        return LVPT[LVPT_idx].target;
+        return LVPT[LVPT_idx].history.back();
     } else {
         DPRINTF(LVPT, "Did not find valid entry for tid: %d at address %#x \n", 
             tid, instPC);
+        return 0;
+    }
+}
+
+RegVal 
+LoadValuePredictionTable::strideLookup(ThreadID tid, Addr instPC, bool *lvptResultValid){
+    unsigned LVPT_idx = getIndex(instPC, tid);
+
+    assert(LVPT_idx < numEntries);
+    assert(historyDepth > 1);
+
+    if (valid(instPC, tid)) {
+        DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %d \n", 
+            tid, instPC, LVPT[LVPT_idx].history.back());
+        *lvptResultValid = true;
+        if (LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-2] == 0){
+            return LVPT[LVPT_idx].history.back();
+        }
+        else{
+            RegVal stride = LVPT[LVPT_idx].history.back() - LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-2];
+            return LVPT[LVPT_idx].history.back() + stride;
+        }
+        
+    } else {
+        DPRINTF(LVPT, "Did not find valid entry for tid: %d at address %#x \n", 
+            tid, instPC);
+        return 0;
+    }
+}
+
+RegVal
+LoadValuePredictionTable::getStride(ThreadID tid, Addr instPC){
+    unsigned LVPT_idx = getIndex(instPC, tid);
+
+    assert(LVPT_idx < numEntries);
+    assert(historyDepth > 1);
+
+    if (valid(instPC, tid)) {
+        if (LVPT[LVPT_idx].history.size() < 2) {
+            return 0;
+        }
+        return LVPT[LVPT_idx].history.back() - LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-2];
+    } else {
         return 0;
     }
 }
@@ -116,7 +159,7 @@ LoadValuePredictionTable::update(Addr instPC, const RegVal target, ThreadID tid)
 
     LVPT[LVPT_idx].tid = tid;
     LVPT[LVPT_idx].valid = true;
-    LVPT[LVPT_idx].target = target;
+    LVPT[LVPT_idx].history.push_back(target);
     LVPT[LVPT_idx].tag = getTag(instPC);
 }
 

@@ -12,6 +12,7 @@ LoadValuePredictionUnit::LoadValuePredictionUnit(const LoadValuePredictionUnitPa
     loadClassificationTable(params.load_classification_table),
     loadValuePredictionTable(params.load_value_prediction_table),
     constantVerificationUnit(params.constant_verification_unit),
+    isStride(params.is_stride),
     numPredictableLoads(0), numPredictableCorrect(0), numPredictableIncorrect(0),
     numConstLoads(0), numConstLoadsMispredicted(0), numConstLoadsCorrect(0),
     totalLoads(0), numZeroConstLoads(0), numOneConstLoads(0)
@@ -27,7 +28,14 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
 {
     totalLoads++;
     bool lvptResultValid = false;
-    auto lvptResult = loadValuePredictionTable->lookup(tid, inst_addr, &lvptResultValid);
+    RegVal lvptResult;
+    if (isStride){
+        lvptResult = loadValuePredictionTable->strideLookup(tid, inst_addr, &lvptResultValid);
+    }
+    else{
+        lvptResult = loadValuePredictionTable->lookup(tid, inst_addr, &lvptResultValid);
+    }
+   
     auto lctResult = lvptResultValid ? loadClassificationTable->lookup(tid, inst_addr) : LVP_STRONG_UNPREDICTABLE;
 
     LvptResult result;
@@ -78,7 +86,13 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
     }
     loadValuePredictionTable->update(pc, correct_val, tid);
     if(classification != LVP_CONSTANT) {
-        auto result = loadClassificationTable->update(tid, pc, classification, predicted_val == correct_val);
+        LVPType result;
+        if (isStride){
+            result = loadClassificationTable->strideUpdate(tid, pc, classification, predicted_val == correct_val, correct_val - loadValuePredictionTable->getStride(tid, pc));
+        }
+        else{
+            result = loadClassificationTable->update(tid, pc, classification, predicted_val == correct_val);
+        }
         if(result == LVP_CONSTANT) {
             DPRINTF(LVP, "[TID: %d] Load instruction 0x%x marked constant by LCT\n", tid, pc);
             constantVerificationUnit->updateConstLoad(pc, load_address, loadValuePredictionTable->getIndex(pc, tid), tid);

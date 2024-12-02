@@ -64,12 +64,6 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, LVPType prediction
 {
     unsigned local_predictor_idx;
 
-    // No state to restore, and we do not update on the wrong
-    // path.
-    // if (squashed) {
-    //     return;
-    // }
-
     // Update the local predictor.
     local_predictor_idx = getLocalIndex(inst_addr);
 
@@ -78,6 +72,41 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, LVPType prediction
         if (prediction_correct) {
             DPRINTF(LCT, "Load classification updated as correct.\n");
             localCtrs[local_predictor_idx]++;
+        } else {
+            DPRINTF(LCT, "Load classification updated as incorrect.\n");
+            if (prediction == LVP_CONSTANT && invalidateConstToZero) {
+                resetCtr(local_predictor_idx);
+            } else {
+                localCtrs[local_predictor_idx]--;
+            }
+        }
+    }
+    else
+    {
+        // Destructive interference with a different thread, reset this index and update the thread
+        localCtrThreads[local_predictor_idx] = tid;
+        resetCtr(local_predictor_idx);
+    }
+
+    uint8_t counter_val = localCtrs[local_predictor_idx];
+    return getPrediction(counter_val);
+}
+
+LVPType
+LoadClassificationTable::strideUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, RegVal stride){
+    unsigned local_predictor_idx;
+
+    // Update the local predictor.
+    local_predictor_idx = getLocalIndex(inst_addr);
+
+    if (tid == localCtrThreads[local_predictor_idx])
+    {
+        if (prediction_correct) {
+            DPRINTF(LCT, "Load classification updated as correct.\n");
+            // don't want to update to a constant if the stride isn't 0
+            if (!(prediction==LVP_CONSTANT-1 && stride != 0)){
+                localCtrs[local_predictor_idx]++;
+            }
         } else {
             DPRINTF(LCT, "Load classification updated as incorrect.\n");
             if (prediction == LVP_CONSTANT && invalidateConstToZero) {
@@ -118,7 +147,7 @@ LoadClassificationTable::resetCtr(unsigned local_predictor_idx)
     }
 }
 
-inline
+
 LVPType
 LoadClassificationTable::getPrediction(uint8_t &count)
 {
@@ -131,7 +160,7 @@ LoadClassificationTable::getPrediction(uint8_t &count)
             : LVP_PREDICTABLE;
 }
 
-inline
+
 unsigned
 LoadClassificationTable::getLocalIndex(Addr &inst_addr)
 {

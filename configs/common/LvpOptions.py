@@ -36,3 +36,6 @@ def addLvpOptions(parser):
 
     # how many instructions should we be able to squash post mispredict?
     parser.add_argument("--squash_width", default=8)
+
+    # is stride predictor?
+    parser.add_argument("--stride", default=False)

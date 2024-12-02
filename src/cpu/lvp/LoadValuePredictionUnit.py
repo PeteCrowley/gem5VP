@@ -9,7 +9,6 @@ class LoadClassificationTable(SimObject):
     localPredictorSize = Param.Unsigned(512, "Size of local predictor")
     localCtrBits = Param.Unsigned(2, "Bits per counter")
     invalidateConstToZero = Param.Bool(False, "Reset counter to 0 on constant invalidation")
-    #Fully Assoc/direct mapped
 
 class LoadValuePredictionTable(SimObject):
     type = 'LoadValuePredictionTable'
@@ -18,7 +17,6 @@ class LoadValuePredictionTable(SimObject):
 
     entries = Param.Unsigned(1024, "Number of entries in the predicttion table")
     historyDepth = Param.Unsigned(1, "History depth")
-    #Fully Assoc/direct mapped
 
 class ConstantVerificationUnit(SimObject):
     type = 'ConstantVerificationUnit'
@@ -35,3 +33,4 @@ class LoadValuePredictionUnit(SimObject):
     load_classification_table = Param.LoadClassificationTable(LoadClassificationTable(), "A load classification table")
     load_value_prediction_table = Param.LoadValuePredictionTable(LoadValuePredictionTable(), "A load value prediction table")
     constant_verification_unit = Param.ConstantVerificationUnit(ConstantVerificationUnit(), "A constant verification unit")
+    is_stride = Param.Bool(False, "Is this a stride predictor")
