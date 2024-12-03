@@ -27,7 +27,8 @@ class LoadValuePredictionUnit : public SimObject
     LoadValuePredictionTable* loadValuePredictionTable;
     ConstantVerificationUnit* constantVerificationUnit;
     bool isStride;
-    
+    bool isContext;
+
     statistics::Scalar numPredictableLoads;
     statistics::Scalar numPredictableCorrect;
     statistics::Scalar numPredictableIncorrect;
@@ -39,7 +40,7 @@ class LoadValuePredictionUnit : public SimObject
     statistics::Scalar numZeroConstLoads;
     statistics::Scalar numOneConstLoads;
 
-    
+
 
   public:
     LoadValuePredictionUnit(const LoadValuePredictionUnitParams &p);
@@ -70,10 +71,10 @@ class LoadValuePredictionUnit : public SimObject
 
     bool processLoadAddress(ThreadID tid, Addr pc, Addr lvpt_index);
 
-    /** 
+    /**
      * @brief Used to process a store to the store_address and update the CVU
      * so it can verify constants in the pipeline
-     * 
+     *
      * @param tid The thread id
      * @param store_address data address of the value to be stored
      */

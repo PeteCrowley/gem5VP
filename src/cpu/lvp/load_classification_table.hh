@@ -1,9 +1,9 @@
 /*
  * Robert Viramontes
  * Created March 25, 2021
- * Based on the 2bit_local branch predictor provided with the gem5 source. 
- * 
- * 
+ * Based on the 2bit_local branch predictor provided with the gem5 source.
+ *
+ *
  */
 
 #ifndef __CPU_LVP_LOADCLASSIFICATIONTABLE_HH__
@@ -59,6 +59,8 @@ class LoadClassificationTable : public SimObject
 
     LVPType strideUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, RegVal stride);
 
+    LVPType contextUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, RegVal context);
+
     // void squash(ThreadID tid, void *bp_history)
     // { assert(bp_history == NULL); }
 
@@ -69,7 +71,7 @@ class LoadClassificationTable : public SimObject
 
   private:
     /**
-     *  Returns the unpredictable/predictable/constant prediction given 
+     *  Returns the unpredictable/predictable/constant prediction given
      *  the value of the counter.
      *  @param count The value of the counter.
      *  @return The prediction based on the counter value.

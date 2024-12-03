@@ -38,7 +38,7 @@ class LoadValuePredictionTable : public SimObject
         /** The entry's tag. */
         Addr tag;
 
-        /** The entry's history. */ 
+        /** The entry's history. */
         boost::circular_buffer<RegVal> history;
 
         /** The entry's thread id. */
@@ -48,6 +48,21 @@ class LoadValuePredictionTable : public SimObject
         bool valid;
     };
 
+    struct VHTEntry {
+        std::deque<uint64_t> context; // k previous vals
+        int confidence; // Conf. Counter
+    };
+
+    struct VPTEntry {
+        uint64_t prediction; // Predicted value
+        int confidence; // Conf. Counter
+    };
+
+    std::unordered_map<uint64_t, VHTEntry> VHT; // VHT
+    std::unordered_map<uint64_t, VPTEntry> VPT; // VPT
+
+    std::queue<std::tuple<uint64_t, std::deque<uint64_t>, uint64_t>> updateQueue; // Update Queue
+
   public:
     /** Creates a LVPT with the given number of entries, number of bits per
      *  tag, and instruction offset amount.
@@ -56,7 +71,7 @@ class LoadValuePredictionTable : public SimObject
      *  @param instShiftAmt Offset amount for instructions to ignore alignment.
      */
     LoadValuePredictionTable(const LoadValuePredictionTableParams &params);
-    
+
     void reset();
 
     /** Looks up an address in the LVPT. Must call valid() first on the address.
@@ -70,6 +85,10 @@ class LoadValuePredictionTable : public SimObject
 
     RegVal getStride(ThreadID tid, Addr instPC);
 
+    RegVal contextLookup(ThreadID tid, Addr instPC, bool *lvptResultValid);
+
+    RegVal getContext(ThreadID tid, Addr instPC);
+
     /** Checks if the load entry is in the LVPT.
      *  @param inst_PC The address of the branch to look up.
      *  @param tid The thread id.
@@ -82,14 +101,14 @@ class LoadValuePredictionTable : public SimObject
      *  @param target_PC The predicted target data.
      *  @param tid The thread id.
      */
-    
+
     void update(Addr instPC, const RegVal target, ThreadID tid);
 
     /** Returns the index into the LVPT, based on the branch's PC.
      *  @param inst_PC The branch to look up.
      *  @return Returns the index into the LVPT.
      */
-    
+
     unsigned getIndex(Addr instPC, ThreadID tid);
 
     /** Returns the tag bits of a given address.

@@ -12,7 +12,7 @@ LoadValuePredictionUnit::LoadValuePredictionUnit(const LoadValuePredictionUnitPa
     loadClassificationTable(params.load_classification_table),
     loadValuePredictionTable(params.load_value_prediction_table),
     constantVerificationUnit(params.constant_verification_unit),
-    isStride(params.is_stride),
+    isStride(params.is_stride), isContext(params.is_context),
     numPredictableLoads(0), numPredictableCorrect(0), numPredictableIncorrect(0),
     numConstLoads(0), numConstLoadsMispredicted(0), numConstLoadsCorrect(0),
     totalLoads(0), numZeroConstLoads(0), numOneConstLoads(0)
@@ -32,10 +32,13 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
     if (isStride){
         lvptResult = loadValuePredictionTable->strideLookup(tid, inst_addr, &lvptResultValid);
     }
+    else if (isContext) {
+        lvptResult = loadValuePredictionTable->contextLookup(tid, inst_addr, &lvptResultValid);
+    }
     else{
         lvptResult = loadValuePredictionTable->lookup(tid, inst_addr, &lvptResultValid);
     }
-   
+
     auto lctResult = lvptResultValid ? loadClassificationTable->lookup(tid, inst_addr) : LVP_STRONG_UNPREDICTABLE;
 
     LvptResult result;
@@ -44,14 +47,14 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
 
     if(lctResult == LVP_CONSTANT)
     {
-        DPRINTF(LVP, "Constant load for thread %d at address %#x had value %d\n", 
+        DPRINTF(LVP, "Constant load for thread %d at address %#x had value %d\n",
             tid, inst_addr, lvptResult);
         if(lvptResult == 0) numZeroConstLoads++;
         else if(lvptResult == 1) numOneConstLoads++;
     }
 
     // Stat collection
-    if(lctResult == LVP_CONSTANT) 
+    if(lctResult == LVP_CONSTANT)
         numConstLoads++;
     else if(lctResult == LVP_PREDICTABLE)
         numPredictableLoads++;
@@ -67,12 +70,12 @@ LoadValuePredictionUnit::processStoreAddress(ThreadID tid, Addr store_address)
     return true;
 }
 
-bool 
+bool
 LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_address,
                                     RegVal correct_val, RegVal predicted_val,
                                     LVPType classification) {
     /**
-     * LVPT: lvpt::update(pc, tid, correct_val) 
+     * LVPT: lvpt::update(pc, tid, correct_val)
      * LCT:  lct::update(pc, tid) retval lctResult
      * CVU: if(lctResult = constant) updateCVU(pc, tid, pc[9:2], load_address);
      */
@@ -90,6 +93,9 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
         if (isStride){
             result = loadClassificationTable->strideUpdate(tid, pc, classification, predicted_val == correct_val, correct_val - loadValuePredictionTable->getStride(tid, pc));
         }
+        else if (isContext) {
+            result = loadClassificationTable->contextUpdate(tid, pc, classification, predicted_val == correct_val, correct_val - loadValuePredictionTable->getContext(tid, pc));
+        }
         else{
             result = loadClassificationTable->update(tid, pc, classification, predicted_val == correct_val);
         }
@@ -98,7 +104,7 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
             constantVerificationUnit->updateConstLoad(pc, load_address, loadValuePredictionTable->getIndex(pc, tid), tid);
         }
     }
-    return true; 
+    return true;
 }
 
 std::pair<LVPType, RegVal>
@@ -116,14 +122,14 @@ LoadValuePredictionUnit::lookupLVPTIndex(ThreadID tid, Addr pc) {
     return loadValuePredictionTable->getIndex(pc, tid);
 }
 
-bool 
+bool
 LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc) {
 
     Addr lvpt_index = loadValuePredictionTable->getIndex(pc, tid);
     return processLoadAddress(tid, pc, lvpt_index);
 }
 
-bool 
+bool
 LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc, Addr lvpt_index) {
 
     bool ret = constantVerificationUnit->processLoadAddress(pc, lvpt_index, tid);

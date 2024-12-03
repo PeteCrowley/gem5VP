@@ -7,12 +7,14 @@
 namespace gem5
 {
 
+
+
 LoadValuePredictionTable::LoadValuePredictionTable(const LoadValuePredictionTableParams &params)
     : SimObject(params),
       numEntries(params.entries),
       historyDepth(params.historyDepth),
       idxMask(numEntries - 1),
-      instShiftAmt(0) 
+      instShiftAmt(0)
 
 {
     DPRINTF(LVPT, "LVPT: Creating LVPT object.\n");
@@ -86,7 +88,7 @@ LoadValuePredictionTable::valid(Addr instPC, ThreadID tid)
 }
 
 // data = 0 represent invalid entry.
-RegVal 
+RegVal
 LoadValuePredictionTable::lookup(ThreadID tid, Addr instPC, bool *lvptResultValid)
 {
     unsigned LVPT_idx = getIndex(instPC, tid);
@@ -94,18 +96,18 @@ LoadValuePredictionTable::lookup(ThreadID tid, Addr instPC, bool *lvptResultVali
     assert(LVPT_idx < numEntries);
 
     if (valid(instPC, tid)) {
-        DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %#x \n", 
+        DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %#x \n",
             tid, instPC, LVPT[LVPT_idx].history.back());
         *lvptResultValid = true;
         return LVPT[LVPT_idx].history.back();
     } else {
-        DPRINTF(LVPT, "Did not find valid entry for tid: %d at address %#x \n", 
+        DPRINTF(LVPT, "Did not find valid entry for tid: %d at address %#x \n",
             tid, instPC);
         return 0;
     }
 }
 
-RegVal 
+RegVal
 LoadValuePredictionTable::strideLookup(ThreadID tid, Addr instPC, bool *lvptResultValid){
     unsigned LVPT_idx = getIndex(instPC, tid);
 
@@ -113,7 +115,7 @@ LoadValuePredictionTable::strideLookup(ThreadID tid, Addr instPC, bool *lvptResu
     assert(historyDepth > 1);
 
     if (valid(instPC, tid)) {
-        DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %d \n", 
+        DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %d \n",
             tid, instPC, LVPT[LVPT_idx].history.back());
         *lvptResultValid = true;
         if (LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-2] == 0){
@@ -123,9 +125,9 @@ LoadValuePredictionTable::strideLookup(ThreadID tid, Addr instPC, bool *lvptResu
             RegVal stride = LVPT[LVPT_idx].history.back() - LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-2];
             return LVPT[LVPT_idx].history.back() + stride;
         }
-        
+
     } else {
-        DPRINTF(LVPT, "Did not find valid entry for tid: %d at address %#x \n", 
+        DPRINTF(LVPT, "Did not find valid entry for tid: %d at address %#x \n",
             tid, instPC);
         return 0;
     }
@@ -147,6 +149,107 @@ LoadValuePredictionTable::getStride(ThreadID tid, Addr instPC){
         return 0;
     }
 }
+
+RegVal
+LoadValuePredictionTable::hashContext(const std::deque<RegVal> &context)
+{
+    unsigned hash = 0;
+    for (auto val : context) {
+        hash ^= val + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+    }
+    return hash & idxMask;
+}
+
+/* Get VHT Index */
+RegVal
+LoadValuePredictionTable::getVHTIndex(Addr instPC, ThreadID tid)
+{
+    return (instPC ^ tid) & idxMask;
+}
+
+RegVal
+LoadValuePredictionTable::contextLookup(ThreadID tid, Addr instPC, bool *lvptResultValid){
+    unsigned VHT_idx = getVHTIndex(instPC, tid); // change to uint64?
+
+    // P1) Index into the VHT
+    if (VHT.find(VHT_idx) == VHT.end()) {
+        // If no valid entry exists in VHT, return default prediction
+        DPRINTF(LVPT, "No VHT entry for PC %#x and tid %d\n", instPC, tid);
+        *resultValid = false;
+        return 0;
+    }
+
+    VHTEntry &vhtEntry = VHT[VHT_idx];
+    const auto &context = vhtEntry.context;
+
+    // P2) Get an index for the VPT to get the prediction. Save the returned context into the queue
+    unsigned VPT_idx = hashContext(context);
+
+    if (VPT.find(VPT_idx) == VPT.end()) {
+        // If no valid entry exists in VPT, return 0
+        DPRINTF(LVPT, "No VPT entry for context at PC %#x and tid %d\n", instPC, tid);
+        *resultValid = false;
+        return 0;
+    }
+
+    // Getting the entry at the right location in the VPT
+    VPTEntry &vptEntry = VPT[VPT_idx];
+
+    // P3) Form prediction from value in the VPT
+    DPRINTF(LVPT, "Prediction for PC %#x: %lu (confidence: %d)\n",
+            instPC, vptEntry.prediction, vptEntry.confidence);
+
+    // Update VHT with predicted value
+    vhtEntry.context.push_back(vptEntry.prediction);
+    if (vhtEntry.context.size() > historyDepth) {
+        vhtEntry.context.pop_front(); // Maintain order-k context
+    }
+
+    *resultValid = (vptEntry.confidence > confidenceThreshold);
+    return vptEntry.prediction;
+
+}
+
+/* Update VHT and VPT */
+void
+LoadValuePredictionTable::contextUpdate(Addr instPC, const RegVal correctValue, ThreadID tid)
+{
+    unsigned VHT_idx = getVHTIndex(instPC, tid);
+    DPRINTF(LVPT, "Updating VHT for PC %#x, tid %d with value %lu\n", instPC, tid, correctValue);
+
+    // U1) Retrieve saved context from update queue when correct value available
+    // Update VHT
+    if (VHT.find(VHT_idx) == VHT.end()) {
+        VHT[VHT_idx] = VHTEntry(historyDepth);
+    }
+    auto &context = VHT[VHT_idx].context;
+
+    // Use context to index into VPT
+    unsigned VPT_idx = hashContext(context);
+
+    if (VPT.find(VPT_idx) == VPT.end()) {
+        VPT[VPT_idx] = VPTEntry();
+    }
+    auto &vptEntry = VPT[VPT_idx];
+
+    // U2) Update VHT and VPT using the correct value
+    // Update prediction value and confidence
+    if (vptEntry.prediction == correctValue) {
+        vptEntry.confidence = std::min(vptEntry.confidence + 1, 255);
+    } else {
+        vptEntry.confidence = std::max(vptEntry.confidence - 1, 0);
+    }
+    vptEntry.prediction = correctValue;
+
+    // Update VHT with correct value
+    context.push_back(correctValue);
+    if (context.size() > historyDepth) {
+        context.pop_front();
+    }
+
+    DPRINTF(LVPT, "Updated VHT and VPT for PC %#x, tid %d\n", instPC, tid);
+}
+
 
 void
 //prajyotg :: updated :: LoadValuePredictionTable::update(Addr instPC, const TheISA::PCState &target, ThreadID tid)

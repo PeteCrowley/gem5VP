@@ -127,6 +127,41 @@ LoadClassificationTable::strideUpdate(ThreadID tid, Addr inst_addr, LVPType pred
     return getPrediction(counter_val);
 }
 
+// TODO: FINISH THIS METHOD!!!!!
+LVPType
+LoadClassificationTable::contextUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, RegVal context)
+{
+    unsigned local_predictor_idx;
+
+    // Update the local predictor.
+    local_predictor_idx = getLocalIndex(inst_addr);
+
+    if (tid == localCtrThreads[local_predictor_idx])
+    {
+        if (prediction_correct) {
+            DPRINTF(LCT, "Load classification updated as correct.\n");
+            // TODO: ADD CODE HERE
+            localCtrs[local_predictor_idx]++;
+        } else {
+            DPRINTF(LCT, "Load classification updated as incorrect.\n");
+            if (prediction == LVP_CONSTANT && invalidateConstToZero) {
+                resetCtr(local_predictor_idx);
+            } else {
+                localCtrs[local_predictor_idx]--;
+            }
+        }
+    }
+    else
+    {
+        // Destructive interference with a different thread, reset this index and update the thread
+        localCtrThreads[local_predictor_idx] = tid;
+        resetCtr(local_predictor_idx);
+    }
+
+    uint8_t counter_val = localCtrs[local_predictor_idx];
+    return getPrediction(counter_val);
+}
+
 void
 LoadClassificationTable::reset()
 {
@@ -154,9 +189,9 @@ LoadClassificationTable::getPrediction(uint8_t &count)
     // If MSB is 0, value is unpredictable
     // If counter is saturated, value is constant
     // Otherwise, the value is predictable
-    return (count == 0) ? LVP_STRONG_UNPREDICTABLE 
-            : (count >> (localCtrBits - 1)) == 0 ? LVP_WEAK_UNPREDICTABLE 
-            : count == ((1 << localCtrBits) -1) ? LVP_CONSTANT 
+    return (count == 0) ? LVP_STRONG_UNPREDICTABLE
+            : (count >> (localCtrBits - 1)) == 0 ? LVP_WEAK_UNPREDICTABLE
+            : count == ((1 << localCtrBits) -1) ? LVP_CONSTANT
             : LVP_PREDICTABLE;
 }
 
