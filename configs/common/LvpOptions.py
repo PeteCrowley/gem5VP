@@ -1,14 +1,12 @@
-
 # Robert Viramontes
 
-from __future__ import print_function
-from __future__ import absolute_import
+
+from common import ObjectList
 
 import m5
 from m5.defines import buildEnv
 from m5.objects import *
 
-from common import ObjectList
 
 # Add the very basic options that work also in the case of the no ISA
 # being used, and consequently no CPUs, but rather various types of
@@ -25,9 +23,12 @@ def addLvpOptions(parser):
 
     # CVU params
     parser.add_argument("--cvu-entries", default=8)
-    parser.add_argument("--cvu-replacement", default=1,
-                        help = "1: FIFO, 2: LRU, 3: NLRU, 4: MRU, 5: NMRU")
-    
+    parser.add_argument(
+        "--cvu-replacement",
+        default=1,
+        help="1: FIFO, 2: LRU, 3: NLRU, 4: MRU, 5: NMRU",
+    )
+
     # is there a LVP?
     parser.add_argument("--lvp", default=False)
 
@@ -39,3 +40,6 @@ def addLvpOptions(parser):
 
     # is stride predictor?
     parser.add_argument("--stride", default=False)
+
+    # is context predictor?
+    parser.add_argument("--context", default=False)
