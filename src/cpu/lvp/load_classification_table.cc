@@ -53,13 +53,13 @@ LoadClassificationTable::lookup(ThreadID tid, Addr inst_addr)
 
     uint8_t counter_val = localCtrs[local_predictor_idx];
 
-    
+
 
     LVPType classification = getPrediction(counter_val);
 
     DPRINTF(LCT, "During lookup index %#x had value %i\n",
             local_predictor_idx, classification);
-    
+
     return classification;
 }
 
