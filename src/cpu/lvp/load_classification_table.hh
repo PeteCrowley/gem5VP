@@ -104,6 +104,8 @@ class LoadClassificationTable : public SimObject
     const unsigned instShiftAmt;
 
     const bool invalidateConstToZero;
+
+    bool isConstant(int local_predictor_idx);
 };
 
 } // namespace gem5

@@ -12,6 +12,7 @@
 #include "base/logging.hh"
 
 #include <boost/circular_buffer.hpp>
+#include <queue>
 
 /** Creating a default Load Value Prediction Table entry
  *  which will have below attributes
@@ -111,11 +112,20 @@ class LoadValuePredictionTable : public SimObject
 
     unsigned getIndex(Addr instPC, ThreadID tid);
 
+    RegVal hashContext(const std::deque<RegVal> &context);
+
+    RegVal getVHTIndex(Addr instPC, ThreadID tid);
+
+    void contextUpdate(Addr instPC, const RegVal correctValue, ThreadID tid);
+
+
     /** Returns the tag bits of a given address.
      *  @param inst_PC The branch's address.
      *  @return Returns the tag bits.
      */
     inline Addr getTag(Addr instPC);
+
+    int confidenceThreshold = 128;
 
   protected:
 

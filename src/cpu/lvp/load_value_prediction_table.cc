@@ -175,7 +175,7 @@ LoadValuePredictionTable::contextLookup(ThreadID tid, Addr instPC, bool *lvptRes
     if (VHT.find(VHT_idx) == VHT.end()) {
         // If no valid entry exists in VHT, return default prediction
         DPRINTF(LVPT, "No VHT entry for PC %#x and tid %d\n", instPC, tid);
-        *resultValid = false;
+        *lvptResultValid = false;
         return 0;
     }
 
@@ -188,7 +188,7 @@ LoadValuePredictionTable::contextLookup(ThreadID tid, Addr instPC, bool *lvptRes
     if (VPT.find(VPT_idx) == VPT.end()) {
         // If no valid entry exists in VPT, return 0
         DPRINTF(LVPT, "No VPT entry for context at PC %#x and tid %d\n", instPC, tid);
-        *resultValid = false;
+        *lvptResultValid = false;
         return 0;
     }
 
@@ -205,7 +205,7 @@ LoadValuePredictionTable::contextLookup(ThreadID tid, Addr instPC, bool *lvptRes
         vhtEntry.context.pop_front(); // Maintain order-k context
     }
 
-    *resultValid = (vptEntry.confidence > confidenceThreshold);
+    *lvptResultValid = (vptEntry.confidence > confidenceThreshold);
     return vptEntry.prediction;
 
 }
@@ -220,7 +220,7 @@ LoadValuePredictionTable::contextUpdate(Addr instPC, const RegVal correctValue, 
     // U1) Retrieve saved context from update queue when correct value available
     // Update VHT
     if (VHT.find(VHT_idx) == VHT.end()) {
-        VHT[VHT_idx] = VHTEntry(historyDepth);
+        VHT[VHT_idx] = VHTEntry();
     }
     auto &context = VHT[VHT_idx].context;
 
@@ -266,5 +266,10 @@ LoadValuePredictionTable::update(Addr instPC, const RegVal target, ThreadID tid)
     LVPT[LVPT_idx].tag = getTag(instPC);
 }
 
-
+// Get this real method from Roshan
+RegVal
+LoadValuePredictionTable::getContext(ThreadID tid, Addr instPC)
+{
+    return RegVal(0);
+}
 } // namespace gem5

@@ -997,6 +997,9 @@ Commit::commitInsts()
             if (commit_success) {
                 // here we have to update the LVP if it was a load instruction -Pete
                 if (predictValues){
+                    // DPRINTF(Commit, "Checking LVP for inst [%llu]\n", head_inst->seqNum);
+                    // print if it was load, if it was constandLoad and if we have a valid result
+                    DPRINTF(Commit, "Is Load: %d, Is Constant Load: %d, Valid Result: %d\n", head_inst->isLoad(), head_inst->isConstantLoad, validResult);
                     if (head_inst->isLoad() && !head_inst->isConstantLoad && validResult) {
                         loadValuePred->verifyPrediction(head_inst->threadNumber, head_inst->pcState().instAddr(), head_inst->effAddr, reg_result, head_inst->getLVPValue(), head_inst->getLVPClassification());
                         // debug statement to see if we are speculating
@@ -1005,8 +1008,16 @@ Commit::commitInsts()
                         if (head_inst->isValSpeculation && head_inst->getLVPValue() != reg_result) {
                             DPRINTF(Commit, "Mispredicted load value for instr [%llu], squashing\n", head_inst->seqNum);
                             squashAfter(head_inst->threadNumber, head_inst);
+                            // let's let the rob know this was a value mispredict
+                            rob->setValueMispredictSquash(true);
                         }
                     }
+                    if (head_inst->isValSpeculation && !validResult) {
+                            DPRINTF(Commit, "Mispredicted load value for instr [%llu], squashing\n", head_inst->seqNum);
+                            squashAfter(head_inst->threadNumber, head_inst);
+                            // let's let the rob know this was a value mispredict
+                            rob->setValueMispredictSquash(true);
+                        }
                 }
 
 

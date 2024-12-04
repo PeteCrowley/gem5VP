@@ -18,7 +18,7 @@ LoadClassificationTable::LoadClassificationTable(const LoadClassificationTablePa
       localCtrThreads(localPredictorSets, 0),
       indexMask(localPredictorSets - 1),
       invalidateConstToZero(params.invalidateConstToZero),
-      instShiftAmt(0) // TODO what is correct???
+      instShiftAmt(0)
 {
     if (!isPowerOf2(localPredictorSize)) {
         fatal("Invalid LCT local predictor size!\n");
@@ -69,9 +69,13 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, LVPType prediction
 
     if (tid == localCtrThreads[local_predictor_idx])
     {
-        if (prediction_correct) {
-            DPRINTF(LCT, "Load classification updated as correct.\n");
+        if (prediction_correct && !isConstant(local_predictor_idx)) {
             localCtrs[local_predictor_idx]++;
+            
+            // if (isConstant(local_predictor_idx)) {
+            //     localCtrs[local_predictor_idx]--;
+            // }
+            DPRINTF(LCT, "Load classification updated with value %d after correct prediction.\n", localCtrs[local_predictor_idx]);
         } else {
             DPRINTF(LCT, "Load classification updated as incorrect.\n");
             if (prediction == LVP_CONSTANT && invalidateConstToZero) {
@@ -95,7 +99,7 @@ LoadClassificationTable::update(ThreadID tid, Addr inst_addr, LVPType prediction
 LVPType
 LoadClassificationTable::strideUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, RegVal stride){
     unsigned local_predictor_idx;
-
+    DPRINTF(LCT, "Stride update for thread %d at address %#x\n", tid, inst_addr);
     // Update the local predictor.
     local_predictor_idx = getLocalIndex(inst_addr);
 
@@ -103,9 +107,11 @@ LoadClassificationTable::strideUpdate(ThreadID tid, Addr inst_addr, LVPType pred
     {
         if (prediction_correct) {
             DPRINTF(LCT, "Load classification updated as correct.\n");
+            
+            localCtrs[local_predictor_idx]++;
             // don't want to update to a constant if the stride isn't 0
-            if (!(prediction==LVP_CONSTANT-1 && stride != 0)){
-                localCtrs[local_predictor_idx]++;
+            if (isConstant(local_predictor_idx) && stride != 0) {
+                localCtrs[local_predictor_idx]--;
             }
         } else {
             DPRINTF(LCT, "Load classification updated as incorrect.\n");
@@ -189,12 +195,21 @@ LoadClassificationTable::getPrediction(uint8_t &count)
     // If MSB is 0, value is unpredictable
     // If counter is saturated, value is constant
     // Otherwise, the value is predictable
-    return (count == 0) ? LVP_STRONG_UNPREDICTABLE
-            : (count >> (localCtrBits - 1)) == 0 ? LVP_WEAK_UNPREDICTABLE
-            : count == ((1 << localCtrBits) -1) ? LVP_CONSTANT
+    return (count == 0) ? LVP_STRONG_UNPREDICTABLE 
+            : (count >> (localCtrBits - 1)) == 0 ? LVP_WEAK_UNPREDICTABLE 
+            : count == ((1 << localCtrBits) -1) ? LVP_CONSTANT 
             : LVP_PREDICTABLE;
 }
 
+
+bool
+LoadClassificationTable::isConstant(int local_predictor_idx)
+{
+    // if (localCtrBits == 4){
+    //     return localCtrs[local_predictor_idx] == 7;
+    // }
+    return localCtrs[local_predictor_idx] == ((1 << localCtrBits) - 1);
+}
 
 unsigned
 LoadClassificationTable::getLocalIndex(Addr &inst_addr)

@@ -847,26 +847,26 @@ LSQ::pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,
             if (predictValues){
                 // process the load request in the lvpu if it is a constant prediction -Pete
 
-                if (inst->isLoad() && inst->getLVPClassification() == LVP_CONSTANT && loadValuePred->processLoadAddress(inst->threadNumber, inst->pcState().instAddr())){
-                        // if it is truly a constant load, we can predict the value without even going to memory
-                        inst->isConstantLoad = true;
-                        // Now set the correct register value and return
-                        inst->setRegOperand(inst->staticInst.get(), 0, inst->lvp_value);
-                        inst->setExecuted();
-                        // do the writeback stage just like in lsq_unit writeback -Pete
-                        iewStage->wakeCPU();
-                        // Need to insert instruction into queue to commit
-                        iewStage->instToCommit(inst);
-                        iewStage->activityThisCycle();
-                        // see if this load changed the PC
-                        iewStage->checkMisprediction(inst);
-                        return NoFault;
-                }
+                // if (inst->isLoad() && inst->getLVPClassification() == LVP_CONSTANT && loadValuePred->processLoadAddress(inst->threadNumber, inst->effAddr, inst->pcState().instAddr())){
+                //         // if it is truly a constant load, we can predict the value without even going to memory
+                //         inst->isConstantLoad = true;
+                //         // Now set the correct register value and return
+                //         inst->setRegOperand(inst->staticInst.get(), 0, inst->lvp_value);
+                //         inst->setExecuted();
+                //         // do the writeback stage just like in lsq_unit writeback -Pete
+                //         iewStage->wakeCPU();
+                //         // Need to insert instruction into queue to commit
+                //         iewStage->instToCommit(inst);
+                //         iewStage->activityThisCycle();
+                //         // see if this load changed the PC
+                //         iewStage->checkMisprediction(inst);
+                //         return NoFault;
+                // }
         
-                // process all store requests in the lvpu -Pete
-                if (inst->isStore()){
-                    loadValuePred->processStoreAddress(inst->threadNumber, inst->effAddr);
-                }   
+                // // process all store requests in the lvpu -Pete
+                // if (inst->isStore()){
+                //     loadValuePred->processStoreAddress(inst->threadNumber, inst->effAddr);
+                // }   
             }
 
             if (cpu->checker) {

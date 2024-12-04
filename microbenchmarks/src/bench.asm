@@ -19,7 +19,7 @@ _start:
     ; Store a value in my_int
     mov eax, 100               ; Load the value to be stored in EAX
     mov [my_int], eax          ; Store the value into memory (my_int) so it goes to the l1 cache
-    mov ecx,6
+    mov ecx,10
 
     ;pauses x50 to give the 
     pause

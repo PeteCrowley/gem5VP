@@ -45,13 +45,15 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
     result.taken = lctResult;
     result.value = lvptResult;
 
-    if(lctResult == LVP_CONSTANT)
-    {
-        DPRINTF(LVP, "Constant load for thread %d at address %#x had value %d\n",
-            tid, inst_addr, lvptResult);
-        if(lvptResult == 0) numZeroConstLoads++;
-        else if(lvptResult == 1) numOneConstLoads++;
-    }
+    // if(lctResult == LVP_CONSTANT)
+    // {
+    //     lctResult = LVP_PREDICTABLE;
+        
+    //     // DPRINTF(LVP, "Constant load for thread %d at address %#x had value %d\n", 
+    //     //     tid, inst_addr, lvptResult);
+    //     // if(lvptResult == 0) numZeroConstLoads++;
+    //     // else if(lvptResult == 1) numOneConstLoads++;
+    // }
 
     // Stat collection
     if(lctResult == LVP_CONSTANT)
@@ -79,7 +81,7 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
      * LCT:  lct::update(pc, tid) retval lctResult
      * CVU: if(lctResult = constant) updateCVU(pc, tid, pc[9:2], load_address);
      */
-    DPRINTF(LVP, "[TID: %d] Verifying prediction for load instruction 0x%x. predicted: %d, true value: %d, from addr: 0x%x\n", tid, pc, predicted_val, correct_val, load_address);
+    DPRINTF(LVP, "[TID: %d] Verifying prediction for load instruction 0x%x. predicted val: %d, true value: %d, classification: %d, from addr: 0x%x\n", tid, pc, predicted_val, correct_val, classification, load_address);
     if(predicted_val != correct_val && classification == LVP_PREDICTABLE) {
         // Stats for predictable loads here
         numPredictableIncorrect++;
@@ -122,17 +124,17 @@ LoadValuePredictionUnit::lookupLVPTIndex(ThreadID tid, Addr pc) {
     return loadValuePredictionTable->getIndex(pc, tid);
 }
 
-bool
-LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc) {
+bool 
+LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr loadAddr, Addr pc) {
 
     Addr lvpt_index = loadValuePredictionTable->getIndex(pc, tid);
-    return processLoadAddress(tid, pc, lvpt_index);
+    return processLoadAddress(tid, loadAddr, pc, lvpt_index);
 }
 
-bool
-LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr pc, Addr lvpt_index) {
+bool 
+LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr loadAddr, Addr pc, Addr lvpt_index) {
 
-    bool ret = constantVerificationUnit->processLoadAddress(pc, lvpt_index, tid);
+    bool ret = constantVerificationUnit->processLoadAddress(pc, loadAddr, lvpt_index, tid);
     if(!ret) {
         // Load is not in the CVU CAM... Invalidate the const state in the LCT
 

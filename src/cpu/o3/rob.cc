@@ -62,7 +62,8 @@ ROB::ROB(CPU *_cpu, const BaseO3CPUParams &params)
       squashWidth(params.squashWidth),
       numInstsInROB(0),
       numThreads(params.numThreads),
-      stats(_cpu)
+      stats(_cpu),
+      valueMispredictSquash(false)
 {
     //Figure out rob policy
     if (robPolicy == SMTQueuePolicy::Dynamic) {
@@ -336,6 +337,12 @@ ROB::doSquash(ThreadID tid)
         numInstsToSquash = numEntries;
     }
 
+    // if value mispredict squash everything in 1 cycle
+    if (valueMispredictSquash) {
+        DPRINTF(ROB, "Value mispredict, squashing all instructions.\n");
+        numInstsToSquash = numEntries;
+    }
+
     for (int numSquashed = 0;
          numSquashed < numInstsToSquash &&
          squashIt[tid] != instList[tid].end() &&
@@ -388,6 +395,7 @@ ROB::doSquash(ThreadID tid)
     if (robTailUpdate) {
         updateTail();
     }
+    valueMispredictSquash = false;
 }
 
 

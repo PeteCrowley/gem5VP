@@ -38,14 +38,18 @@ void ConstantVerificationUnit::processStoreAddress(ThreadID tid,
 	}
 }
 
+// I think we need the actual load address in here too
 bool ConstantVerificationUnit::processLoadAddress(Addr pc, 
+													Addr loadAddr,
 													Addr lvptIndex,
 													ThreadID tid) {
 	// Both load address and LVPT index have to be searched
 	auto itr = _cvuCAM[(uint16_t)tid%64].begin();
 	while (itr != _cvuCAM[(uint16_t)tid%64].end()) {
 		struct CAMEntry temp = *itr;
-		if (temp.pc == pc && temp.lvpt_index == lvptIndex) {
+		if (temp.pc == pc && temp.lvpt_index == lvptIndex && temp.load_address == loadAddr) {
+			// print temp.load_addr and loadAddr
+			// DPRINTF(CVU, "temp.load_address: 0x%x, loadAddr: 0x%x\n", temp.load_address, loadAddr);
 			DPRINTF(CVU, "[TID %d] Load instruction: 0x%x matched in CVU CAM\n", tid, pc);
 			++_numConstantHits;
 			// Update the end time of this entry (for replacement purposes)
