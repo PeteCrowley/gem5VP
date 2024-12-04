@@ -9,13 +9,13 @@ namespace gem5{
 
 ConstantVerificationUnit::ConstantVerificationUnit(const ConstantVerificationUnitParams &params) :
     SimObject(params), _numEntries(params.entries), _numConstantHits(0),
-    _numConstantMiss(0), _numStoreHits(0), _numStoreMiss(0), 
-    _replacementPolicy(params.replacementPolicy), _numReplacements(0) 
+    _numConstantMiss(0), _numStoreHits(0), _numStoreMiss(0),
+    _replacementPolicy(params.replacementPolicy), _numReplacements(0)
 {}
 
 ConstantVerificationUnit::~ConstantVerificationUnit() {}
 
-void ConstantVerificationUnit::processStoreAddress(ThreadID tid, 
+void ConstantVerificationUnit::processStoreAddress(ThreadID tid,
 													 Addr address) {
 	DPRINTF(CVU, "[TID %d]: Store address: 0x%x being searched in CVU CAM\n", tid, address);
 	// Only the load address needs to be compared with the store address
@@ -39,7 +39,7 @@ void ConstantVerificationUnit::processStoreAddress(ThreadID tid,
 }
 
 // I think we need the actual load address in here too
-bool ConstantVerificationUnit::processLoadAddress(Addr pc, 
+bool ConstantVerificationUnit::processLoadAddress(Addr pc,
 													Addr loadAddr,
 													Addr lvptIndex,
 													ThreadID tid) {
@@ -70,7 +70,7 @@ bool ConstantVerificationUnit::updateConstLoad(Addr pc, Addr address,
 	temp.pc = pc;
 	temp.lvpt_index = lvptIndex;
 	temp.load_address = address;
-	temp.entry = std::chrono::high_resolution_clock::now(); 
+	temp.entry = std::chrono::high_resolution_clock::now();
 	temp.access = temp.entry;
 	if(_cvuCAM[(uint16_t)tid%64].size() >= _numEntries) {
 		// CAM is full, replace a block according to a set replacement policy
@@ -139,7 +139,7 @@ void ConstantVerificationUnit::replaceBlock(struct CAMEntry new_entry, ThreadID 
 		itr = _cvuCAM[(uint16_t)tid%64].begin();
 		while(itr == itr_replace && itr != _cvuCAM[(uint16_t)tid%64].end()) {
 			itr++;
-		} 
+		}
 		itr_replace = itr;
 		DPRINTF(CVU, "Entry with PC: 0x%x being ejected from CVU CAM\n", itr_replace->pc);
 		_cvuCAM[(uint16_t)tid%64].erase(itr_replace);
@@ -182,7 +182,7 @@ void ConstantVerificationUnit::replaceBlock(struct CAMEntry new_entry, ThreadID 
 		itr = _cvuCAM[(uint16_t)tid%64].begin();
 		while(itr == itr_replace && itr != _cvuCAM[(uint16_t)tid%64].end()) {
 			itr++;
-		} 
+		}
 		itr_replace = itr;
 		DPRINTF(CVU, "Entry with PC: 0x%x being ejected from CVU CAM\n", itr_replace->pc);
 		_cvuCAM[(uint16_t)tid%64].erase(itr_replace);

@@ -3,19 +3,19 @@
  *
  * @brief      This file the implements class of the constant verification unit
  * 			   for a load value predictor.
- * 			   The constant verification unit has the following functions:                     
+ * 			   The constant verification unit has the following functions:
  * 			   - Keep track of load addresses which have been deemed "constant"
  * 			   by the LCT
- * 			   - Monitor all committed stores and invalidate a constant load 
+ * 			   - Monitor all committed stores and invalidate a constant load
  * 			   address if a store that is being committed has the same address
  * 			   as the constant load
- * 			   - Compare a load value for address that had been deemed 
- * 			   "predictable" by the LCT with the actual load value retrieved 
+ * 			   - Compare a load value for address that had been deemed
+ * 			   "predictable" by the LCT with the actual load value retrieved
  * 			   from memory
  * 			   - Provide feedback to the LCT for all predictable loads
- * 			   - Possible implementation of this class could also include a 
+ * 			   - Possible implementation of this class could also include a
  * 			   mechanism to pass load values from the commit stage back to the
- * 			   LVPT (Since this will be needed if an instruction is to be 
+ * 			   LVPT (Since this will be needed if an instruction is to be
  * 			   promoted from unpredictable to predictable and so on.)
  */
 
@@ -42,16 +42,16 @@ namespace gem5 {
 #define RP_MRU  4        // The most recently used entry is kicked out
 #define RP_NMRU 5        // The not most recently used entry is kicked out
 
-#define DURATION std::chrono::duration_cast<std::chrono::duration<double, std::milli>> 
+#define DURATION std::chrono::duration_cast<std::chrono::duration<double, std::milli>>
 typedef std::chrono::high_resolution_clock::time_point TimePoint;
 
 /**
- * @brief      The CVU stores the load address and the index of the LVPT in a 
+ * @brief      The CVU stores the load address and the index of the LVPT in a
  *             concatenated form in its CAM. This is searched by loads that are
  *             predicted as constant and by store addresses. Thus, the search of
- *             the CAM will be different for each case. The search for a load 
- *             predicted as "constant" will be done on the entire entry in the 
- *             CAM while a store address will only need to be compared with the 
+ *             the CAM will be different for each case. The search for a load
+ *             predicted as "constant" will be done on the entire entry in the
+ *             CAM while a store address will only need to be compared with the
  *             load address stored in the CAM.
  */
 
@@ -67,19 +67,19 @@ struct CAMEntry {
 };
 
 class ConstantVerificationUnit : public SimObject {
-public: 
+public:
 	ConstantVerificationUnit(const ConstantVerificationUnitParams &p);
 
 	~ConstantVerificationUnit();
 
 	/**
-	 * @brief      A store address will be provided to the CVU which will then 
-	 * 			   search the CAM and invalidate every entry which matches the 
+	 * @brief      A store address will be provided to the CVU which will then
+	 * 			   search the CAM and invalidate every entry which matches the
 	 * 			   input address. This will also generate the control signals
 	 * 			   required for communicating with the LCT.
 	 *
 	 * @param[in]  address  The store address
-	 */	
+	 */
 	void processStoreAddress(ThreadID tid, Addr address);
 
 	/**
@@ -92,7 +92,7 @@ public:
 	 *
 	 * @return     True if the load address, LVPT index pair exist in the CAM
 	 * 			   False otherwise
-	 */	
+	 */
 	bool processLoadAddress(Addr pc, Addr loadAddr, Addr lvptIndex, ThreadID tid);
 
 	/**
@@ -108,7 +108,7 @@ public:
 	bool updateConstLoad(Addr pc, Addr address, Addr lvptIndex, ThreadID tid);
 
 	/**
-	 * @brief      Replaces an entry in the CVU CAM with a new one according to 
+	 * @brief      Replaces an entry in the CVU CAM with a new one according to
 	 *             a replacement policy
 	 *
 	 * @param[in]  new_entry  The new entry
@@ -123,7 +123,7 @@ public:
 
 private:
 	/**
-	 * The CVU Content Addressable Memory; 
+	 * The CVU Content Addressable Memory;
 	 * If a store address is found in this memory, the corresponding entry is
 	 * invalidated and the invalidation also triggers an update routine which
 	 * tells the LCT that this load address is no longer constant.
@@ -181,4 +181,3 @@ private:
 } // namespace gem5
 
 #endif
-

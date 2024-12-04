@@ -48,8 +48,8 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
     // if(lctResult == LVP_CONSTANT)
     // {
     //     lctResult = LVP_PREDICTABLE;
-        
-    //     // DPRINTF(LVP, "Constant load for thread %d at address %#x had value %d\n", 
+
+    //     // DPRINTF(LVP, "Constant load for thread %d at address %#x had value %d\n",
     //     //     tid, inst_addr, lvptResult);
     //     // if(lvptResult == 0) numZeroConstLoads++;
     //     // else if(lvptResult == 1) numOneConstLoads++;
@@ -124,14 +124,14 @@ LoadValuePredictionUnit::lookupLVPTIndex(ThreadID tid, Addr pc) {
     return loadValuePredictionTable->getIndex(pc, tid);
 }
 
-bool 
+bool
 LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr loadAddr, Addr pc) {
 
     Addr lvpt_index = loadValuePredictionTable->getIndex(pc, tid);
     return processLoadAddress(tid, loadAddr, pc, lvpt_index);
 }
 
-bool 
+bool
 LoadValuePredictionUnit::processLoadAddress(ThreadID tid, Addr loadAddr, Addr pc, Addr lvpt_index) {
 
     bool ret = constantVerificationUnit->processLoadAddress(pc, loadAddr, lvpt_index, tid);
