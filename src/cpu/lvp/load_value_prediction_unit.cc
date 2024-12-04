@@ -94,7 +94,7 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
             result = loadClassificationTable->strideUpdate(tid, pc, classification, predicted_val == correct_val, correct_val - loadValuePredictionTable->getStride(tid, pc));
         }
         else if (isContext) {i 
-            result = loadClassificationTable->contextUpdate(tid, pc, classification, predicted_val == correct_val, correct_val, (loadValuePredictionTable->getVHTIndex > 0));
+            result = loadClassificationTable->contextUpdate(tid, pc, classification, predicted_val == correct_val, correct_val, (loadValuePredictionTable->getVHTIndex(pc, tid) > 0));
         }
         else{
             result = loadClassificationTable->update(tid, pc, classification, predicted_val == correct_val);
