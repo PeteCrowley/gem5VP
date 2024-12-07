@@ -137,9 +137,9 @@ LoadClassificationTable::strideUpdate(ThreadID tid, Addr inst_addr, LVPType pred
     return getPrediction(counter_val);
 }
 
-// TODO: FINISH THIS METHOD!!!!!
+// CHECK THIS METHOD...... I SUSPECT THE hasContext PART MIGHT BE WONKY
 LVPType
-LoadClassificationTable::contextUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, RegVal context)
+LoadClassificationTable::contextUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, bool hasContext)
 {
     unsigned local_predictor_idx;
 
@@ -150,8 +150,11 @@ LoadClassificationTable::contextUpdate(ThreadID tid, Addr inst_addr, LVPType pre
     {
         if (prediction_correct) {
             DPRINTF(LCT, "Load classification updated as correct.\n");
-            // TODO: ADD CODE HERE
-            localCtrs[local_predictor_idx]++;
+            // Don't update to a constant if it has a context (i.e. the value is being predicted)
+            if (hasContext) {
+                localCtrs[local_predictor_idx]++;
+            }
+            
         } else {
             DPRINTF(LCT, "Load classification updated as incorrect.\n");
             if (prediction == LVP_CONSTANT && invalidateConstToZero) {

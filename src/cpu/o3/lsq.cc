@@ -862,11 +862,11 @@ LSQ::pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,
                 //         iewStage->checkMisprediction(inst);
                 //         return NoFault;
                 // }
-        
+
                 // // process all store requests in the lvpu -Pete
                 // if (inst->isStore()){
                 //     loadValuePred->processStoreAddress(inst->threadNumber, inst->effAddr);
-                // }   
+                // }
             }
 
             if (cpu->checker) {

@@ -50,6 +50,12 @@ class LoadValuePredictionTable : public SimObject
     };
 
     struct VHTEntry {
+        VHTEntry()
+            : context(2), confidence(0)
+        {}
+        VHTEntry(int depth)
+            : context(depth), confidence(0)
+        {}
         std::deque<uint64_t> context; // k previous vals
         int confidence; // Conf. Counter
     };
@@ -81,6 +87,8 @@ class LoadValuePredictionTable : public SimObject
      *  @return Returns the predicated load value.
      */
     RegVal lookup(ThreadID tid, Addr instPC, bool *lvptResultValid);
+
+    void strideInitialize();
 
     RegVal strideLookup(ThreadID tid, Addr instPC, bool *lvptResultValid);
 
@@ -125,7 +133,7 @@ class LoadValuePredictionTable : public SimObject
      */
     inline Addr getTag(Addr instPC);
 
-    int confidenceThreshold = 128;
+    int confidenceThreshold = 2;
 
   protected:
 

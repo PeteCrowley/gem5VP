@@ -107,24 +107,35 @@ LoadValuePredictionTable::lookup(ThreadID tid, Addr instPC, bool *lvptResultVali
     }
 }
 
+void
+LoadValuePredictionTable::strideInitialize()
+{
+    assert(historyDepth > 2);
+    for (unsigned i = 0; i < numEntries; ++i) {
+        LVPT[i].history.push_back(0);
+        LVPT[i].history.push_back(1);
+        LVPT[i].history.push_back(0);
+    }
+}
+
 RegVal
 LoadValuePredictionTable::strideLookup(ThreadID tid, Addr instPC, bool *lvptResultValid){
     unsigned LVPT_idx = getIndex(instPC, tid);
 
     assert(LVPT_idx < numEntries);
-    assert(historyDepth > 1);
+    assert(historyDepth > 2);
 
     if (valid(instPC, tid)) {
         DPRINTF(LVPT, "Found valid entry for tid: %d at pc %#x : %d \n",
-            tid, instPC, LVPT[LVPT_idx].history.back());
-        *lvptResultValid = true;
-        if (LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-2] == 0){
-            return LVPT[LVPT_idx].history.back();
-        }
-        else{
-            RegVal stride = LVPT[LVPT_idx].history.back() - LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-2];
-            return LVPT[LVPT_idx].history.back() + stride;
-        }
+        tid, instPC, LVPT[LVPT_idx].history.back());
+
+        RegVal stride = LVPT[LVPT_idx].history.back() - LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-2];
+
+        // if stride is same between last 3 values, then the result is valid
+        *lvptResultValid = (LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-2] - LVPT[LVPT_idx].history[LVPT[LVPT_idx].history.size()-3] == stride);
+
+        return LVPT[LVPT_idx].history.back() + stride;
+        
 
     } else {
         DPRINTF(LVPT, "Did not find valid entry for tid: %d at address %#x \n",
@@ -138,7 +149,7 @@ LoadValuePredictionTable::getStride(ThreadID tid, Addr instPC){
     unsigned LVPT_idx = getIndex(instPC, tid);
 
     assert(LVPT_idx < numEntries);
-    assert(historyDepth > 1);
+    assert(historyDepth > 2);
 
     if (valid(instPC, tid)) {
         if (LVPT[LVPT_idx].history.size() < 2) {
@@ -220,7 +231,7 @@ LoadValuePredictionTable::contextUpdate(Addr instPC, const RegVal correctValue, 
     // U1) Retrieve saved context from update queue when correct value available
     // Update VHT
     if (VHT.find(VHT_idx) == VHT.end()) {
-        VHT[VHT_idx] = VHTEntry();
+        VHT[VHT_idx] = VHTEntry(historyDepth);
     }
     auto &context = VHT[VHT_idx].context;
 

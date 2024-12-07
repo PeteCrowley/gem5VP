@@ -128,6 +128,10 @@ _loop:
     pause
     pause
     pause
+    pause
+    pause
+    pause
+    pause
 
     JMP _loop                       
 

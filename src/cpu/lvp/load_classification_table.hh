@@ -59,7 +59,7 @@ class LoadClassificationTable : public SimObject
 
     LVPType strideUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, RegVal stride);
 
-    LVPType contextUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, RegVal context);
+    LVPType contextUpdate(ThreadID tid, Addr inst_addr, LVPType prediction, bool prediction_correct, bool hasContext);
 
     // void squash(ThreadID tid, void *bp_history)
     // { assert(bp_history == NULL); }

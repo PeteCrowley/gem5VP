@@ -21,7 +21,7 @@ _start:
     mov [my_int], eax          ; Store the value into memory (my_int) so it goes to the l1 cache
     mov ecx,10
 
-    ;pauses x50 to give the 
+    ;pauses x50 to give the
     pause
     pause
     pause
@@ -73,7 +73,7 @@ _start:
     pause
     pause
     pause
-    
+
 
 
 ; train the value predictor
@@ -91,7 +91,7 @@ _loop:
 
     cmp ecx, 0                  ; Compare ecx to 0
     jz _end_loop                    ; If ecx == 0, jump back to _loop
-    
+
     pause
     pause
     pause
@@ -125,7 +125,7 @@ _loop:
     pause
     pause
 
-    JMP _loop                       
+    JMP _loop
 
 _end_loop:
     ; Exit the program (for Linux)

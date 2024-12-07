@@ -21,6 +21,12 @@ LoadValuePredictionUnit::LoadValuePredictionUnit(const LoadValuePredictionUnitPa
     panic_if(!loadClassificationTable, "LVP must have a non-null LCT");
     panic_if(!loadValuePredictionTable, "LVP must have a non-null LVPT");
     panic_if(!constantVerificationUnit, "LVP must have a non-null LVPT");
+
+    if (isStride) {
+        assert(!isContext);
+        loadValuePredictionTable->strideInitialize();
+
+    }
 }
 
 LvptResult
@@ -38,7 +44,7 @@ LoadValuePredictionUnit::lookup(ThreadID tid, Addr inst_addr)
     else{
         lvptResult = loadValuePredictionTable->lookup(tid, inst_addr, &lvptResultValid);
     }
-
+    
     auto lctResult = lvptResultValid ? loadClassificationTable->lookup(tid, inst_addr) : LVP_STRONG_UNPREDICTABLE;
 
     LvptResult result;
@@ -89,14 +95,20 @@ LoadValuePredictionUnit::verifyPrediction(ThreadID tid, Addr pc, Addr load_addre
     else if(predicted_val == correct_val && classification == LVP_PREDICTABLE) {
         numPredictableCorrect++;
     }
-    loadValuePredictionTable->update(pc, correct_val, tid);
+    if (isContext){
+        loadValuePredictionTable->contextUpdate(pc, correct_val, tid);
+    }
+    else{
+        loadValuePredictionTable->update(pc, correct_val, tid);
+    }
+    
     if(classification != LVP_CONSTANT) {
         LVPType result;
         if (isStride){
             result = loadClassificationTable->strideUpdate(tid, pc, classification, predicted_val == correct_val, correct_val - loadValuePredictionTable->getStride(tid, pc));
         }
-        else if (isContext) {
-            result = loadClassificationTable->contextUpdate(tid, pc, classification, predicted_val == correct_val, correct_val - loadValuePredictionTable->getContext(tid, pc));
+        else if (isContext) { 
+            result = loadClassificationTable->contextUpdate(tid, pc, classification, predicted_val == correct_val, loadValuePredictionTable->getVHTIndex(pc, tid) > 0);
         }
         else{
             result = loadClassificationTable->update(tid, pc, classification, predicted_val == correct_val);

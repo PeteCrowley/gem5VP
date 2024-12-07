@@ -282,6 +282,8 @@ for i in range(np):
             cpu[i].loadValuePred.constant_verification_unit.replacementPolicy = args.cvu_replacement
             # stride
             cpu[i].loadValuePred.is_stride = args.stride
+            # context
+            cpu[i].loadValuePred.is_context = args.context
 
     # # width of 1
     if args.scalar:

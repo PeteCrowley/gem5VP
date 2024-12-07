@@ -68,6 +68,7 @@
 #include "params/BaseO3CPU.hh"
 #include "sim/faults.hh"
 #include "sim/full_system.hh"
+#include "debug/CVU.hh"
 
 namespace gem5
 {
@@ -984,14 +985,14 @@ Commit::commitInsts()
                     if (head_inst->isValSpeculation){
                         head_inst->popResult();
                     }
-                    
+
                     if (head_inst->getInstResult().isValid()) {
                         reg_result = head_inst->getInstResult().asRegVal();
                         validResult = true;
                     }
                 }
             }
-            
+
             // Try to commit the head instruction.
             bool commit_success = commitHead(head_inst, num_committed);
             if (commit_success) {
@@ -1006,7 +1007,7 @@ Commit::commitInsts()
                         DPRINTF(Commit, "Inst [%llu] Speculating: %d, LVP Classification: %d\n", head_inst->seqNum, head_inst->isValSpeculation, head_inst->getLVPClassification());
                         // if we mispredicted, we have to do some squashing:
                         if (head_inst->isValSpeculation && head_inst->getLVPValue() != reg_result) {
-                            DPRINTF(Commit, "Mispredicted load value for instr [%llu], squashing\n", head_inst->seqNum);
+                            DPRINTF(CVU, "Mispredicted load value for instr [%llu], squashing, rob entries: %d\n", head_inst->seqNum, rob->getThreadEntries(head_inst->threadNumber));
                             squashAfter(head_inst->threadNumber, head_inst);
                             // let's let the rob know this was a value mispredict
                             rob->setValueMispredictSquash(true);
@@ -1287,6 +1288,9 @@ Commit::commitHead(const DynInstPtr &head_inst, unsigned inst_num)
     updateComInstStats(head_inst);
 
     DPRINTF(Commit,
+            "[tid:%i] [sn:%llu] Committing instruction with PC %s\n",
+            tid, head_inst->seqNum, head_inst->pcState());
+    DPRINTF(CVU,
             "[tid:%i] [sn:%llu] Committing instruction with PC %s\n",
             tid, head_inst->seqNum, head_inst->pcState());
     if (head_inst->traceData) {
